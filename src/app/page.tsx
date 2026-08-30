@@ -1,481 +1,367 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useTheme } from '@/components/ThemeProvider';
 
-const PIPELINE_STEPS = [
-  { icon: '📤', label: 'Upload' },
-  { icon: '🔍', label: 'Review' },
-  { icon: '✏️', label: 'Design' },
-  { icon: '✅', label: 'Approve' },
-  { icon: '⚙️', label: 'Produce' },
-  { icon: '🚚', label: 'Ship' },
-  { icon: '✓', label: 'Delivered' },
+const FEATURES = [
+  { num: '01', title: '3D In-Browser Preview', desc: 'View, rotate, and inspect STL/PLY dental scans directly in your browser — no desktop software required.' },
+  { num: '02', title: 'Structured Prescriptions', desc: 'Capture tooth number, restoration type, shade, material, and notes in one consistent digital form.' },
+  { num: '03', title: 'Case-Attached Chat', desc: 'Every question, photo, and clarification stays attached directly to the specific case — zero lost emails.' },
+  { num: '04', title: 'Live Status Pipeline', desc: 'From upload to delivery, one synchronized pipeline tells every participant exactly where a case stands.' },
+  { num: '05', title: 'Lab Response Files', desc: 'Labs upload CAD designs and revisions back to the case thread before milling begins.' },
+  { num: '06', title: 'Privacy-Preserved Shipping', desc: 'Couriers receive only the Case ID and addresses — clinical scans and patient data stay protected.' },
 ];
 
-const STEP_DETAILS = [
+const ROLES = [
   {
-    status: 'Uploading 3D scan (STL/PLY)...',
-    fields: [
-      { label: 'Patient', value: 'J. Morrison' },
-      { label: 'Tooth', value: '#14 Upper Left Molar' },
-      { label: 'Restoration', value: 'Zirconia Crown' },
-      { label: 'Shade', value: 'A2' },
-      { label: 'Due Date', value: 'Sep 5, 2026' },
-      { label: 'Lab', value: 'Precision Dental Lab' },
-    ],
-    preview: '🦷',
-    previewText: '3D Scan Preview (STL)',
-    previewSub: 'Drag to rotate • Scroll to zoom in browser',
+    icon: '🦷',
+    title: 'Dentist',
+    color: 'var(--dentist)',
+    colorRgb: '166, 240, 255',
+    desc: 'Upload 3D scans, set structured prescriptions, preview models in-browser, approve designs, and track every case.',
+    perks: ['In-browser 3D scan viewer', 'Lab directory & selection', 'Case chat with photo uploads', '1-click design approval'],
   },
   {
-    status: 'Lab reviewing prescription...',
-    fields: [
-      { label: 'Patient', value: 'J. Morrison' },
-      { label: 'Tooth', value: '#14 Upper Left Molar' },
-      { label: 'Restoration', value: 'Zirconia Crown' },
-      { label: 'Shade', value: 'A2' },
-      { label: 'Notes', value: 'Minimal clearance, watch margin' },
-      { label: 'Lab', value: 'Precision Dental Lab' },
-    ],
-    preview: '💬',
-    previewText: 'Lab Case Chat',
-    previewSub: '"Can you confirm margin line on buccal side?"',
+    icon: '🔬',
+    title: 'Dental Lab',
+    color: 'var(--lab)',
+    colorRgb: '42, 127, 255',
+    desc: 'Receive organized cases with scan files and prescriptions. Upload design proposals and advance production stages.',
+    perks: ['Full prescription specs', '3D inspection & rotation', 'Design file responses', 'Ready-for-pickup trigger'],
   },
   {
-    status: 'CAD design in progress...',
-    fields: [
-      { label: 'Patient', value: 'J. Morrison' },
-      { label: 'Tooth', value: '#14 Upper Left Molar' },
-      { label: 'Designer', value: 'M. Chen' },
-      { label: 'Software', value: 'Exocad 3.2' },
-      { label: 'Started', value: 'Aug 29, 2:15 PM' },
-      { label: 'ETA', value: '~3 hours' },
-    ],
-    preview: '✏️',
-    previewText: 'Design CAD Model',
-    previewSub: 'Preparing crown geometry & contact points',
-  },
-  {
-    status: 'Awaiting dentist approval...',
-    fields: [
-      { label: 'Patient', value: 'J. Morrison' },
-      { label: 'Tooth', value: '#14 Upper Left Molar' },
-      { label: 'Design', value: 'v2 (revised margin)' },
-      { label: 'Shade', value: 'A2 — confirmed match' },
-      { label: 'Sent', value: 'Aug 29, 5:42 PM' },
-      { label: 'Action needed', value: 'Dentist approval required' },
-    ],
-    preview: '👁️',
-    previewText: 'Interactive Preview',
-    previewSub: 'Inspect 3D restoration before physical milling',
-  },
-  {
-    status: 'In production (milling & sintering)...',
-    fields: [
-      { label: 'Patient', value: 'J. Morrison' },
-      { label: 'Tooth', value: '#14 Upper Left Molar' },
-      { label: 'Machine', value: 'DMG DentaMill 5-Axis' },
-      { label: 'Material', value: 'Zirconia block #Z-440' },
-      { label: 'Started', value: 'Aug 29, 6:15 PM' },
-      { label: 'ETA', value: '~4 hours milling' },
-    ],
-    preview: '⚙️',
-    previewText: 'Production Monitor',
-    previewSub: 'Milling & glazing in progress (67%)',
-  },
-  {
-    status: 'Ready for shipping pickup...',
-    fields: [
-      { label: 'Patient', value: 'J. Morrison' },
-      { label: 'Tooth', value: '#14 Upper Left Molar' },
-      { label: 'Package', value: 'Crown + model + invoice' },
-      { label: 'Weight', value: '45g' },
-      { label: 'Pickup from', value: 'Precision Dental Lab' },
-      { label: 'Deliver to', value: 'Smile Dental, 42 Oak St' },
-    ],
-    preview: '📦',
-    previewText: 'Shipping Logistics Handoff',
-    previewSub: 'Addresses & Case ID shared (clinical data hidden)',
-  },
-  {
-    status: 'Delivered & Completed ✓',
-    fields: [
-      { label: 'Patient', value: 'J. Morrison' },
-      { label: 'Tooth', value: '#14 Upper Left Molar' },
-      { label: 'Tracking', value: '1Z999AA10123456784' },
-      { label: 'Carrier', value: 'Express Courier' },
-      { label: 'Delivered', value: 'Aug 30, 9:15 AM' },
-      { label: 'Signed by', value: 'Dr. Williams' },
-    ],
-    preview: '✓',
-    previewText: 'Case Closed',
-    previewSub: 'Physical piece delivered & case completed',
+    icon: '🚚',
+    title: 'Shipping',
+    color: 'var(--ship)',
+    colorRgb: '95, 168, 255',
+    desc: 'Privacy-separated view — see pickup and delivery addresses with Case ID only. No clinical data exposed.',
+    perks: ['Pickup confirmation', 'Tracking number assignment', 'Live delivery status', 'Automated case closing'],
   },
 ];
+
+const HOW_STEPS = [
+  { num: 'Step 1', title: 'Create your account', desc: 'Sign up as a Dentist, Dental Lab, or Shipping company. Each role sees its own tailored workspace.' },
+  { num: 'Step 2', title: 'Submit a dental case', desc: 'Upload the 3D scan (STL/PLY), fill in the structured prescription, and assign it to your preferred lab.' },
+  { num: 'Step 3', title: 'Collaborate in real time', desc: 'Chat, share reference photos, review the CAD design, and approve or request revisions — all in one place.' },
+  { num: 'Step 4', title: 'Track to the door', desc: 'The shipping partner picks up, enters tracking, and the case closes automatically on confirmed delivery.' },
+];
+
+const MARQUEE_ITEMS = [
+  '🦷 Dental Workflow', '🔬 Lab Collaboration', '📦 Shipping Logistics',
+  '✅ Design Approval', '💬 Case Chat', '🧊 3D Scan Viewer',
+  '🦷 Dental Workflow', '🔬 Lab Collaboration', '📦 Shipping Logistics',
+  '✅ Design Approval', '💬 Case Chat', '🧊 3D Scan Viewer',
+];
+
+function useFadeUp() {
+  useEffect(() => {
+    const els = document.querySelectorAll<HTMLElement>('.fade-up');
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            (e.target as HTMLElement).classList.add('visible');
+            obs.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+}
 
 export default function HomePage() {
   const { theme, toggleTheme } = useTheme();
-  const [activeStep, setActiveStep] = useState(0);
-
-  const step = STEP_DETAILS[activeStep];
-  const fillPercent = (activeStep / 6) * 100;
+  const [mobileOpen, setMobileOpen] = useState(false);
+  useFadeUp();
 
   return (
     <div className="relative min-h-screen">
-      {/* Tradex Animated Mesh & Grid */}
-      <div className="mesh-bg"></div>
-      <div className="grid-overlay"></div>
+      {/* Floating blob background */}
+      <div className="blob-bg">
+        <div className="blob blob-1" />
+        <div className="blob blob-2" />
+        <div className="blob blob-3" />
+      </div>
+      <div className="grid-overlay" />
 
       <div className="relative z-10">
-        {/* Navigation Bar */}
-        <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-xl">
-          <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
+
+        {/* ── Navbar ─────────────────────────────────────────────── */}
+        <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--nav-bg)] backdrop-blur-xl">
+          <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-5 sm:px-8">
             <Link href="/" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--dentist)] to-[var(--lab)] text-xl font-bold text-[#0a0e17] shadow-lg shadow-[var(--accent-glow)]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--dentist)] to-[var(--lab)] text-xl font-bold text-[#070A10] shadow-lg">
                 ◈
               </div>
               <span className="text-2xl font-black tracking-tight text-[var(--text)]">
-                DENTRIO<span className="text-[var(--accent)]">.</span>
+                Dentrio<span className="text-[var(--accent)]">.</span>
               </span>
             </Link>
 
-            <nav className="hidden items-center gap-8 md:flex">
-              <a href="#roles" className="text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--text)]">
-                Roles
-              </a>
-              <a href="#workflow" className="text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--text)]">
-                Workflow
-              </a>
-              <a href="#features" className="text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--text)]">
-                Features
-              </a>
+            <nav className="hidden items-center gap-6 md:flex">
+              <a href="#roles"    className="text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--text)]">Roles</a>
+              <a href="#how"      className="text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--text)]">How it works</a>
+              <a href="#features" className="text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--text)]">Features</a>
             </nav>
 
-            <div className="flex items-center gap-4">
-              <button
-                onClick={toggleTheme}
-                type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text)] transition hover:border-[var(--accent)]"
-                aria-label="Toggle Theme"
-              >
+            <div className="flex items-center gap-3">
+              <button onClick={toggleTheme} type="button" aria-label="Toggle theme"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text)] transition hover:border-[var(--accent)]">
                 {theme === 'dark' ? '☀️' : '🌙'}
               </button>
-              <Link
-                href="/login"
-                className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
-              >
+              <Link href="/login"
+                className="hidden rounded-xl border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] sm:inline-flex">
                 Sign In
               </Link>
-              <Link
-                href="/signup"
-                className="btn-accent rounded-lg px-4 py-2 text-sm"
-              >
+              <Link href="/signup" className="btn-accent rounded-xl px-4 py-2 text-sm">
                 Get Started
               </Link>
+              {/* Mobile burger */}
+              <button onClick={() => setMobileOpen(!mobileOpen)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-card)] md:hidden" aria-label="Menu">
+                <span className="text-[var(--text)] text-lg">{mobileOpen ? '✕' : '☰'}</span>
+              </button>
             </div>
           </div>
+
+          {/* Mobile menu */}
+          {mobileOpen && (
+            <div className="border-t border-[var(--border)] bg-[var(--bg-card)] px-5 pb-5 pt-3 md:hidden">
+              <nav className="flex flex-col gap-2">
+                {[['#roles','Roles'],['#how','How it works'],['#features','Features']].map(([href,label])=>(
+                  <a key={href} href={href} onClick={() => setMobileOpen(false)}
+                    className="rounded-lg px-4 py-2.5 text-sm font-semibold text-[var(--text-muted)] transition hover:bg-[var(--bg-elevated)] hover:text-[var(--text)]">
+                    {label}
+                  </a>
+                ))}
+                <Link href="/login" onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-4 py-2.5 text-sm font-semibold text-[var(--text-muted)] transition hover:bg-[var(--bg-elevated)] hover:text-[var(--text)]">
+                  Sign In
+                </Link>
+                <Link href="/signup" onClick={() => setMobileOpen(false)} className="btn-accent mt-1 rounded-xl px-4 py-2.5 text-center text-sm">
+                  Get Started
+                </Link>
+              </nav>
+            </div>
+          )}
         </header>
 
-        {/* Hero Section with Interactive Orbit */}
-        <section className="mx-auto max-w-5xl px-6 pt-20 pb-16 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(0,212,170,0.25)] bg-[var(--accent-dim)] px-4 py-1.5 text-xs font-semibold text-[var(--accent)]">
-            <span>◈</span>
-            <span>The Connected Dental Logistics Network</span>
+        {/* ── Hero ───────────────────────────────────────────────── */}
+        <section className="mx-auto flex max-w-7xl flex-col items-center gap-10 px-5 pt-20 pb-16 sm:px-8 lg:flex-row lg:gap-16 lg:pt-28 lg:pb-24">
+          {/* Left — text */}
+          <div className="flex-1 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(42,127,255,0.3)] bg-[var(--accent-dim)] px-4 py-1.5 text-xs font-bold text-[var(--accent-light)] fade-up">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+              The Connected Dental Platform
+            </div>
+
+            <h1 className="mt-7 text-5xl font-black leading-[1.08] tracking-tight text-[var(--text)] sm:text-6xl xl:text-7xl fade-up fade-up-delay-1">
+              One platform.<br />
+              <span className="bg-gradient-to-r from-[var(--accent-light)] via-[var(--accent)] to-[var(--lab)] bg-clip-text text-transparent">
+                Three connected worlds.
+              </span>
+            </h1>
+
+            <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[var(--text-muted)] sm:text-lg lg:mx-0 fade-up fade-up-delay-2">
+              Dentrio connects <strong className="text-[var(--text)]">dentists, dental labs, and shipping companies</strong> in one shared case workflow — built around in-browser 3D dental scan previews instead of lost emails and scattered files.
+            </p>
+
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-4 lg:justify-start fade-up fade-up-delay-3">
+              <Link href="/signup" className="btn-accent rounded-xl px-8 py-3.5 text-base">
+                Create Account — Free
+              </Link>
+              <Link href="/login"
+                className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-8 py-3.5 text-base font-semibold text-[var(--text)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">
+                Demo Login (h09)
+              </Link>
+            </div>
+
+            {/* Mini trust strip */}
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 lg:justify-start fade-up fade-up-delay-4">
+              {[['3', 'Connected Roles'], ['1', 'Shared Case Record'], ['0', 'Lost Attachments']].map(([n, l]) => (
+                <div key={l} className="text-center lg:text-left">
+                  <p className="text-3xl font-black text-[var(--accent)]">{n}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{l}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <h1 className="mt-8 text-5xl font-black tracking-tight text-[var(--text)] sm:text-7xl sm:leading-none">
-            One platform.<br />
-            <span className="bg-gradient-to-r from-[var(--dentist)] via-[var(--lab)] to-[var(--ship)] bg-clip-text text-transparent">
-              Three connected worlds.
-            </span>
-          </h1>
+          {/* Right — orbit visual */}
+          <div className="relative flex h-72 w-72 flex-shrink-0 items-center justify-center sm:h-96 sm:w-96 fade-up fade-up-delay-2">
+            <div className="orbit-ring orbit-ring-1"><div className="orbit-dot dot-dentist" /></div>
+            <div className="orbit-ring orbit-ring-2"><div className="orbit-dot dot-lab" /></div>
+            <div className="orbit-ring orbit-ring-3"><div className="orbit-dot dot-ship" /></div>
 
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-[var(--text-muted)] sm:text-xl">
-            Dentrio connects <strong>dentists, dental labs, and shipping companies</strong> in one shared case workflow — built around in-browser 3D dental scan previews instead of lost emails.
-          </p>
-
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/signup"
-              className="btn-accent rounded-xl px-8 py-3.5 text-base"
-            >
-              Create Account
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-8 py-3.5 text-base font-semibold text-[var(--text)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
-            >
-              Enter Demo (h09)
-            </Link>
-          </div>
-
-          {/* Tradex 3D Tooth & Orbit Visualization */}
-          <div className="relative mx-auto mt-16 flex h-80 w-80 items-center justify-center sm:h-96 sm:w-96">
-            <div className="orbit-ring orbit-ring-1">
-              <div className="orbit-dot dot-dentist" title="Dentist"></div>
-            </div>
-            <div className="orbit-ring orbit-ring-2">
-              <div className="orbit-dot dot-lab" title="Dental Lab"></div>
-            </div>
-            <div className="orbit-ring orbit-ring-3">
-              <div className="orbit-dot dot-ship" title="Shipping"></div>
-            </div>
-
-            <svg className="h-44 w-44 animate-pulse" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            {/* Central tooth SVG */}
+            <svg className="h-36 w-36 drop-shadow-2xl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <linearGradient id="toothGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#00d4aa" stopOpacity="0.8" />
-                  <stop offset="50%" stopColor="#60a5fa" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.8" />
+                <linearGradient id="tg" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%"   stopColor="#A6F0FF" stopOpacity="0.9" />
+                  <stop offset="50%"  stopColor="#2A7FFF" stopOpacity="0.85" />
+                  <stop offset="100%" stopColor="#123B6B" stopOpacity="0.8" />
                 </linearGradient>
               </defs>
-              <path
-                d="M70 60 Q100 30 130 60 Q140 80 135 100 Q100 110 65 100 Q60 80 70 60Z"
-                fill="url(#toothGrad)"
-                stroke="#00d4aa"
-                strokeWidth="1.5"
-                opacity="0.9"
-              />
-              <path
-                d="M65 100 Q55 130 60 160 Q70 170 80 150 Q85 120 80 100Z"
-                fill="url(#toothGrad)"
-                stroke="#00d4aa"
-                strokeWidth="1"
-                opacity="0.8"
-              />
-              <path
-                d="M135 100 Q145 130 140 160 Q130 170 120 150 Q115 120 120 100Z"
-                fill="url(#toothGrad)"
-                stroke="#00d4aa"
-                strokeWidth="1"
-                opacity="0.8"
-              />
-              <path
-                d="M85 105 Q90 140 95 165 Q100 175 105 165 Q110 140 115 105Z"
-                fill="url(#toothGrad)"
-                stroke="#00d4aa"
-                strokeWidth="1"
-                opacity="0.85"
-              />
+              <path d="M70 60 Q100 30 130 60 Q140 80 135 100 Q100 110 65 100 Q60 80 70 60Z"
+                fill="url(#tg)" stroke="#A6F0FF" strokeWidth="1.5" opacity="0.95" />
+              <path d="M65 100 Q55 130 60 160 Q70 170 80 150 Q85 120 80 100Z"
+                fill="url(#tg)" stroke="#2A7FFF" strokeWidth="1" opacity="0.85" />
+              <path d="M135 100 Q145 130 140 160 Q130 170 120 150 Q115 120 120 100Z"
+                fill="url(#tg)" stroke="#2A7FFF" strokeWidth="1" opacity="0.85" />
+              <path d="M85 105 Q90 140 95 165 Q100 175 105 165 Q110 140 115 105Z"
+                fill="url(#tg)" stroke="#2A7FFF" strokeWidth="1" opacity="0.9" />
             </svg>
-          </div>
-        </section>
 
-        {/* Stats Section */}
-        <section className="border-y border-[var(--border)] bg-[var(--bg-card)] py-12">
-          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-6 text-center sm:grid-cols-3">
-            <div>
-              <p className="text-5xl font-black text-[var(--accent)]">3</p>
-              <p className="mt-1 text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Connected Roles</p>
-            </div>
-            <div>
-              <p className="text-5xl font-black text-[var(--lab)]">1</p>
-              <p className="mt-1 text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Shared Case Record</p>
-            </div>
-            <div>
-              <p className="text-5xl font-black text-[var(--ship)]">0</p>
-              <p className="mt-1 text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Lost Attachments</p>
+            {/* Labels */}
+            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex gap-5">
+              {[['#A6F0FF','🦷 Clinic'],['#2A7FFF','🔬 Lab'],['#5fa8ff','🚚 Ship']].map(([c,l])=>(
+                <span key={l} className="text-[10px] font-bold" style={{ color: c }}>{l}</span>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Roles Section */}
-        <section id="roles" className="mx-auto max-w-7xl px-6 py-24">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-5xl">
+        {/* ── Glow divider ───────────────────────────────────────── */}
+        <div className="glow-line mx-8" />
+
+        {/* ── Marquee strip ──────────────────────────────────────── */}
+        <div className="overflow-hidden border-y border-[var(--border)] bg-[var(--bg-card)] py-4">
+          <div className="marquee-track">
+            {MARQUEE_ITEMS.map((item, i) => (
+              <span key={i} className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">
+                {item} &nbsp;&nbsp;·
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Roles ──────────────────────────────────────────────── */}
+        <section id="roles" className="mx-auto max-w-7xl px-5 py-24 sm:px-8">
+          <div className="text-center fade-up">
+            <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)]">Who it's for</p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-5xl">
               Built for every participant
             </h2>
-            <p className="mt-3 text-lg text-[var(--text-muted)]">
+            <p className="mt-3 text-base text-[var(--text-muted)]">
               Each role sees exactly what they need — no more, no less.
             </p>
           </div>
 
-          <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3">
-            {/* Dentist Card */}
-            <div className="dentrio-card relative overflow-hidden rounded-2xl p-8 transition hover:-translate-y-2">
-              <div className="absolute top-0 right-0 left-0 h-1 bg-[var(--dentist)]"></div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[rgba(0,212,170,0.15)] text-2xl text-[var(--dentist)]">
-                🦷
+          <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
+            {ROLES.map((r, i) => (
+              <div key={r.title}
+                className={`dentrio-card relative overflow-hidden rounded-2xl p-7 transition hover:-translate-y-2 fade-up fade-up-delay-${i + 1}`}>
+                {/* Top accent bar */}
+                <div className="absolute inset-x-0 top-0 h-1" style={{ background: r.color }} />
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl text-3xl"
+                  style={{ background: `rgba(${r.colorRgb}, 0.12)` }}>
+                  {r.icon}
+                </div>
+                <h3 className="mt-5 text-xl font-bold" style={{ color: r.color }}>{r.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">{r.desc}</p>
+                <ul className="mt-5 space-y-2">
+                  {r.perks.map((p) => (
+                    <li key={p} className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
+                      <span className="font-bold" style={{ color: r.color }}>✓</span> {p}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <h3 className="mt-6 text-2xl font-bold text-[var(--dentist)]">Dentist</h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
-                Upload 3D scans (STL/PLY), set structured prescriptions, preview models in-browser, and track status.
-              </p>
-              <ul className="mt-6 space-y-2.5 text-xs font-medium text-[var(--text-muted)]">
-                <li className="flex items-center gap-2"><span className="text-[var(--dentist)]">✓</span> In-browser 3D scan viewer</li>
-                <li className="flex items-center gap-2"><span className="text-[var(--dentist)]">✓</span> Lab directory & selection</li>
-                <li className="flex items-center gap-2"><span className="text-[var(--dentist)]">✓</span> Case chat with photo uploads</li>
-                <li className="flex items-center gap-2"><span className="text-[var(--dentist)]">✓</span> 1-click design approval</li>
-              </ul>
-            </div>
-
-            {/* Dental Lab Card */}
-            <div className="dentrio-card relative overflow-hidden rounded-2xl p-8 transition hover:-translate-y-2">
-              <div className="absolute top-0 right-0 left-0 h-1 bg-[var(--lab)]"></div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[rgba(96,165,250,0.15)] text-2xl text-[var(--lab)]">
-                🔬
-              </div>
-              <h3 className="mt-6 text-2xl font-bold text-[var(--lab)]">Dental Lab</h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
-                Receive organized cases with scan files & prescriptions. Upload design proposals and advance production stages.
-              </p>
-              <ul className="mt-6 space-y-2.5 text-xs font-medium text-[var(--text-muted)]">
-                <li className="flex items-center gap-2"><span className="text-[var(--lab)]">✓</span> Complete prescription specs</li>
-                <li className="flex items-center gap-2"><span className="text-[var(--lab)]">✓</span> 3D inspection & rotation</li>
-                <li className="flex items-center gap-2"><span className="text-[var(--lab)]">✓</span> Design file responses</li>
-                <li className="flex items-center gap-2"><span className="text-[var(--lab)]">✓</span> Ready-for-pickup trigger</li>
-              </ul>
-            </div>
-
-            {/* Shipping Card */}
-            <div className="dentrio-card relative overflow-hidden rounded-2xl p-8 transition hover:-translate-y-2">
-              <div className="absolute top-0 right-0 left-0 h-1 bg-[var(--ship)]"></div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[rgba(245,158,11,0.15)] text-2xl text-[var(--ship)]">
-                📦
-              </div>
-              <h3 className="mt-6 text-2xl font-bold text-[var(--ship)]">Shipping</h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
-                Dedicated privacy-separated view. See pickup and delivery addresses with Case ID only — no clinical data exposed.
-              </p>
-              <ul className="mt-6 space-y-2.5 text-xs font-medium text-[var(--text-muted)]">
-                <li className="flex items-center gap-2"><span className="text-[var(--ship)]">✓</span> Pickup confirmation</li>
-                <li className="flex items-center gap-2"><span className="text-[var(--ship)]">✓</span> Tracking number assignment</li>
-                <li className="flex items-center gap-2"><span className="text-[var(--ship)]">✓</span> Live delivery status pipeline</li>
-                <li className="flex items-center gap-2"><span className="text-[var(--ship)]">✓</span> Automated case closing</li>
-              </ul>
-            </div>
+            ))}
           </div>
         </section>
 
-        {/* Interactive Tradex Workflow Pipeline */}
-        <section id="workflow" className="mx-auto max-w-5xl px-6 py-20">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-5xl">
-              Interactive Case Pipeline
-            </h2>
-            <p className="mt-3 text-base text-[var(--text-muted)]">
-              Click any stage to see what happens in the shared record.
-            </p>
-          </div>
-
-          {/* Pipeline Track */}
-          <div className="relative mt-16 px-4">
-            <div className="absolute top-7 right-8 left-8 h-1 bg-[var(--border)]">
-              <div
-                className="h-full bg-gradient-to-r from-[var(--dentist)] via-[var(--lab)] to-[var(--ship)] transition-all duration-500"
-                style={{ width: `${fillPercent}%` }}
-              ></div>
+        {/* ── How it works ───────────────────────────────────────── */}
+        <section id="how" className="border-y border-[var(--border)] bg-[var(--bg-card)] py-24">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8">
+            <div className="text-center fade-up">
+              <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)]">Process</p>
+              <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-5xl">
+                How it works
+              </h2>
+              <p className="mt-3 text-base text-[var(--text-muted)]">
+                From first scan to final delivery in four seamless steps.
+              </p>
             </div>
 
-            <div className="relative flex justify-between">
-              {PIPELINE_STEPS.map((s, idx) => (
-                <button
-                  key={s.label}
-                  onClick={() => setActiveStep(idx)}
-                  className="group flex flex-col items-center gap-2"
-                >
-                  <div
-                    className={
-                      'flex h-14 w-14 items-center justify-center rounded-full border-2 text-xl font-bold transition-all ' +
-                      (idx === activeStep
-                        ? 'border-[var(--accent)] bg-[var(--accent-dim)] text-[var(--accent)] shadow-lg shadow-[var(--accent-glow)] scale-110'
-                        : idx < activeStep
-                        ? 'border-[var(--accent)] bg-[var(--accent)] text-[#0a0e17]'
-                        : 'border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-muted)]')
-                    }
-                  >
-                    {s.icon}
-                  </div>
-                  <span
-                    className={
-                      'text-xs font-bold transition ' +
-                      (idx === activeStep ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]')
-                    }
-                  >
-                    {s.label}
+            <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {HOW_STEPS.map((s, i) => (
+                <div key={s.num} className={`dentrio-card rounded-2xl p-6 fade-up fade-up-delay-${i + 1}`}>
+                  <span className="inline-block rounded-lg bg-[var(--accent-dim)] px-3 py-1 text-xs font-bold text-[var(--accent)]">
+                    {s.num}
                   </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Interactive Case Detail Simulation */}
-          <div className="dentrio-card mt-12 rounded-2xl p-8">
-            <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
-              <span className="rounded-md bg-[var(--accent-dim)] px-3 py-1 font-mono text-sm font-bold text-[var(--accent)]">
-                CASE-2026-0847
-              </span>
-              <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
-                <span className="h-2.5 w-2.5 animate-ping rounded-full bg-[var(--accent)]"></span>
-                <span>{step.status}</span>
-              </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {step.fields.map((f) => (
-                <div key={f.label} className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{f.label}</p>
-                  <p className="mt-1 text-sm font-bold text-[var(--text)]">{f.value}</p>
+                  <h3 className="mt-4 text-base font-bold text-[var(--text)]">{s.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">{s.desc}</p>
                 </div>
               ))}
             </div>
-
-            <div className="mt-6 flex h-40 flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] text-center">
-              <span className="text-4xl">{step.preview}</span>
-              <p className="mt-2 text-sm font-bold text-[var(--text)]">{step.previewText}</p>
-              <p className="text-xs text-[var(--text-muted)]">{step.previewSub}</p>
-            </div>
           </div>
         </section>
 
-        {/* Features Section */}
-        <section id="features" className="mx-auto max-w-7xl px-6 py-20">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-5xl">
-              Core Capabilities
+        {/* ── Features ───────────────────────────────────────────── */}
+        <section id="features" className="mx-auto max-w-7xl px-5 py-24 sm:px-8">
+          <div className="text-center fade-up">
+            <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)]">Capabilities</p>
+            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-5xl">
+              Core Features
             </h2>
-            <p className="mt-3 text-lg text-[var(--text-muted)]">
+            <p className="mt-3 text-base text-[var(--text-muted)]">
               Everything that makes Dentrio the next-generation dental orchestration tool.
             </p>
           </div>
 
-          <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {[
-              { num: '01', title: '3D In-Browser Preview', desc: 'No heavy desktop software needed. View, rotate, and inspect STL/PLY files directly in your web browser.' },
-              { num: '02', title: 'Structured Prescriptions', desc: 'Eliminate scribbled notes and messy emails. Capture restoration type, tooth number, shade, material, and notes consistently.' },
-              { num: '03', title: 'Case-Attached Chat', desc: 'Every question, clarification, and reference photo stays attached directly to the specific case file.' },
-              { num: '04', title: 'Live Status Pipeline', desc: 'From upload to pickup and delivery, one synchronized pipeline tells everyone where a case stands in real time.' },
-              { num: '05', title: 'Lab Response Files', desc: 'Labs upload digital CAD designs and revisions directly back to the case thread before milling.' },
-              { num: '06', title: 'Privacy-Preserved Shipping', desc: 'Couriers receive case IDs and addresses without accessing confidential clinical files or scans.' },
-            ].map((f) => (
-              <div key={f.num} className="dentrio-card rounded-2xl p-8 transition hover:-translate-y-1">
-                <span className="font-mono text-4xl font-black text-[var(--accent)] opacity-40">{f.num}</span>
-                <h3 className="mt-3 text-xl font-bold text-[var(--text)]">{f.title}</h3>
+          <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {FEATURES.map((f, i) => (
+              <div key={f.num}
+                className={`dentrio-card group rounded-2xl p-7 transition hover:-translate-y-1 hover:border-[var(--accent)] fade-up fade-up-delay-${(i % 3) + 1}`}>
+                <span className="font-mono text-4xl font-black text-[var(--accent)] opacity-30 transition group-hover:opacity-60">
+                  {f.num}
+                </span>
+                <h3 className="mt-3 text-base font-bold text-[var(--text)]">{f.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">{f.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Footer CTA */}
-        <footer className="border-t border-[var(--border)] bg-[var(--bg-card)] py-20 text-center">
-          <h2 className="text-3xl font-black tracking-tight text-[var(--text)] sm:text-5xl">
-            Ready to streamline your dental workflow?
+        {/* ── CTA Banner ─────────────────────────────────────────── */}
+        <section className="mx-5 mb-16 overflow-hidden rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[#0E1B2A] to-[#123B6B] px-8 py-16 text-center sm:mx-8 fade-up">
+          <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent-light)] opacity-70">Ready?</p>
+          <h2 className="mt-3 text-3xl font-black tracking-tight text-[var(--text)] sm:text-5xl">
+            Streamline your dental workflow today.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base text-[var(--text-muted)]">
-            Join Dentrio today and connect your clinic or dental lab to a unified 3D pipeline.
+            Join Dentrio and connect your clinic or dental lab to a unified, privacy-first 3D pipeline.
           </p>
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link href="/signup" className="btn-accent rounded-xl px-8 py-3.5 text-base">
               Create Your Account
             </Link>
-            <Link href="/login" className="rounded-xl border border-[var(--border)] px-8 py-3.5 text-base font-semibold text-[var(--text)] transition hover:border-[var(--accent)]">
+            <Link href="/login"
+              className="rounded-xl border border-[rgba(166,240,255,0.25)] px-8 py-3.5 text-base font-semibold text-[var(--accent-light)] transition hover:border-[var(--accent-light)]">
               Sign In
             </Link>
           </div>
+        </section>
+
+        {/* ── Footer ─────────────────────────────────────────────── */}
+        <footer className="border-t border-[var(--border)] bg-[var(--bg-card)] py-10 text-center">
+          <Link href="/" className="inline-flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--dentist)] to-[var(--lab)] text-sm font-bold text-[#070A10]">◈</div>
+            <span className="text-lg font-black text-[var(--text)]">Dentrio<span className="text-[var(--accent)]">.</span></span>
+          </Link>
+          <p className="mt-3 text-xs text-[var(--text-muted)]">
+            © 2026 Dentrio. Connecting dental clinics, labs, and logistics.
+          </p>
+          <div className="mt-4 flex justify-center gap-6">
+            <Link href="/login"  className="text-xs font-semibold text-[var(--text-muted)] transition hover:text-[var(--accent)]">Sign In</Link>
+            <Link href="/signup" className="text-xs font-semibold text-[var(--text-muted)] transition hover:text-[var(--accent)]">Register</Link>
+          </div>
         </footer>
+
       </div>
     </div>
   );

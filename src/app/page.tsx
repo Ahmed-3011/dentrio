@@ -171,11 +171,11 @@ export default function HomePage() {
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4 lg:justify-start fade-up fade-up-delay-3">
               <Link href="/signup" className="btn-accent rounded-xl px-8 py-3.5 text-base">
-                Create Account — Free
+                Create Account
               </Link>
               <Link href="/login"
                 className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-8 py-3.5 text-base font-semibold text-[var(--text)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">
-                Demo Login (h09)
+                Sign In
               </Link>
             </div>
 

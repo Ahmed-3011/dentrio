@@ -16,15 +16,16 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark');
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('dentrio_theme') as Theme | null;
-    const initialTheme = saved === 'light' || saved === 'dark' ? saved : 'dark';
-    
-    setTheme(initialTheme);
-    applyTheme(initialTheme);
-    setMounted(true);
+    try {
+      const saved = localStorage.getItem('dentrio_theme') as Theme | null;
+      const initialTheme = saved === 'light' || saved === 'dark' ? saved : 'dark';
+      setTheme(initialTheme);
+      applyTheme(initialTheme);
+    } catch {
+      // LocalStorage unavailable (e.g. private browsing or sandbox)
+    }
   }, []);
 
   const applyTheme = (t: Theme) => {
@@ -41,13 +42,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const toggleTheme = () => {
     const nextTheme: Theme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
-    localStorage.setItem('dentrio_theme', nextTheme);
+    try {
+      localStorage.setItem('dentrio_theme', nextTheme);
+    } catch {
+      // Ignore write errors
+    }
     applyTheme(nextTheme);
   };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {mounted ? children : <div style={{ visibility: 'hidden' }}>{children}</div>}
+      {children}
     </ThemeContext.Provider>
   );
 }

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* New Color Palette - Dark (default) */
+  /* Dark (default) Theme Tokens */
   --bg: #070A10;
   --bg-card: #0E1B2A;
   --bg-elevated: #123B6B;
@@ -73,7 +73,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ─── Floating Blob Background ─────────────────────────────── */
+/* ─── Ambient Floating Blobs ─────────────────────────────────── */
 .blob-bg {
   position: fixed;
   inset: 0;
@@ -85,8 +85,8 @@ body {
 .blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.22;
+  filter: blur(90px);
+  opacity: 0.25;
   will-change: transform;
 }
 
@@ -211,7 +211,7 @@ html.light .dentrio-card {
   to   { transform: translateX(-50%); }
 }
 
-/* ─── Orbit Animations (kept for hero) ─────────────────────── */
+/* ─── Orbit Animations ──────────────────────────────────────── */
 .orbit-ring {
   position: absolute;
   border: 1px solid rgba(42, 127, 255, 0.2);
@@ -220,9 +220,9 @@ html.light .dentrio-card {
   transform: translate(-50%, -50%);
 }
 
-.orbit-ring-1 { width: 220px; height: 220px; animation: orbitSpin 20s linear infinite; }
-.orbit-ring-2 { width: 300px; height: 300px; animation: orbitSpin 28s linear infinite reverse; }
-.orbit-ring-3 { width: 380px; height: 380px; animation: orbitSpin 36s linear infinite; }
+.orbit-ring-1 { width: 280px; height: 280px; animation: orbitSpin 22s linear infinite; }
+.orbit-ring-2 { width: 370px; height: 370px; animation: orbitSpin 30s linear infinite reverse; }
+.orbit-ring-3 { width: 450px; height: 450px; animation: orbitSpin 38s linear infinite; }
 
 @keyframes orbitSpin {
   from { transform: translate(-50%, -50%) rotate(0deg); }
@@ -242,61 +242,78 @@ html.light .dentrio-card {
 .dot-lab     { background: var(--lab);     color: var(--lab); }
 .dot-ship    { background: var(--ship);    color: var(--ship); }
 
-/* ─── Hero Glow Line ────────────────────────────────────────── */
+/* ─── Glow divider line ─────────────────────────────────────── */
 .glow-line {
   height: 1px;
   background: linear-gradient(90deg, transparent, #2A7FFF, #A6F0FF, transparent);
   opacity: 0.5;
 }
 
-/* ─── Floating & Rounding Dental Overdenture + Bar Animation ── */
-.dental-float-rounding {
-  animation: dentalFloatRound 7s ease-in-out infinite;
+/* ─── Realistic Exploded Overdenture & Bar Animations ───────── */
+.exploded-assembly {
+  animation: assemblyFloatRound 8s ease-in-out infinite;
   transform-origin: center center;
   will-change: transform;
 }
 
-.dental-overdenture {
-  animation: overdentureHover 5s ease-in-out infinite alternate;
+.layer-maxilla {
+  animation: maxillaDrift 6s ease-in-out infinite alternate;
+  transform-origin: center top;
+}
+
+.layer-bar {
+  animation: barFloat 5s ease-in-out infinite alternate;
   transform-origin: center center;
 }
 
-.dental-bar {
-  animation: barPulse 4s ease-in-out infinite alternate;
+.layer-denture {
+  animation: dentureFloat 7s ease-in-out infinite alternate;
+  transform-origin: center bottom;
 }
 
-@keyframes dentalFloatRound {
+@keyframes assemblyFloatRound {
   0% {
     transform: translateY(0px) rotate(0deg) scale(1);
   }
   25% {
-    transform: translateY(-8px) rotate(2.5deg) scale(1.02);
+    transform: translateY(-10px) rotate(3deg) scale(1.02);
   }
   50% {
-    transform: translateY(-14px) rotate(-1.5deg) scale(1.03);
+    transform: translateY(-18px) rotate(-1.5deg) scale(1.04);
   }
   75% {
-    transform: translateY(-6px) rotate(-3deg) scale(1.01);
+    transform: translateY(-8px) rotate(-3.5deg) scale(1.01);
   }
   100% {
     transform: translateY(0px) rotate(0deg) scale(1);
   }
 }
 
-@keyframes overdentureHover {
+@keyframes maxillaDrift {
   0% {
     transform: translateY(0px);
   }
   100% {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
   }
 }
 
-@keyframes barPulse {
+@keyframes barFloat {
   0% {
-    filter: drop-shadow(0 0 4px rgba(42, 127, 255, 0.4));
+    transform: translateY(0px) scale(1);
+    filter: drop-shadow(0 4px 10px rgba(42, 127, 255, 0.4));
   }
   100% {
-    filter: drop-shadow(0 0 16px rgba(166, 240, 255, 0.7));
+    transform: translateY(3px) scale(1.01);
+    filter: drop-shadow(0 8px 24px rgba(166, 240, 255, 0.7));
+  }
+}
+
+@keyframes dentureFloat {
+  0% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(8px);
   }
 }

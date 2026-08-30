@@ -9,21 +9,24 @@ export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const session = req.cookies.get(SESSION_COOKIE)?.value;
 
+  // The landing page '/' is always public
   if (path === '/') {
-    return session
-      ? NextResponse.next()
-      : NextResponse.redirect(new URL('/login', req.nextUrl));
+    return NextResponse.next();
   }
 
   const isProtected = protectedRoutes.some((r) => path.startsWith(r));
   const isAuth = authRoutes.some((r) => path.startsWith(r));
 
+  // If trying to access protected routes without session -> redirect to login
   if (isProtected && !session) {
     return NextResponse.redirect(new URL('/login', req.nextUrl));
   }
+
+  // If already logged in and visiting login/signup -> redirect to dashboard
   if (isAuth && session) {
     return NextResponse.redirect(new URL('/dashboard', req.nextUrl));
   }
+
   return NextResponse.next();
 }
 

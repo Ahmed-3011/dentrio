@@ -1,0 +1,67 @@
+import { NextRequest } from 'next/server';
+import { get, run } from '@/lib/db';
+import { requireRole } from '@/lib/auth';
+import { saveUpload, isAllowedFile } from '@/lib/upload';
+
+const NEXT_STATUS: Record<string, string> = {
+  REVIEW: 'DESIGN',
+  DESIGN: 'PRODUCTION',
+  PRODUCTION: 'READY',
+};
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const user = await requireRole(['LAB']);
+  const { id } = await params;
+  const caseId = Number(id);
+
+  const caseRow = await get('SELECT id, lab_user_id, status FROM cases WHERE id = ?', [caseId]);
+  if (!caseRow) return Response.json({ error: 'Case not found' }, { status: 404 });
+  if (Number(caseRow.lab_user_id) !== user.id)
+    return Response.json({ error: 'Forbidden' }, { status: 403 });
+
+  const current = String(caseRow.status);
+  const next = NEXT_STATUS[current];
+  if (!next) {
+    return Response.json({ error: 'Case cannot be advanced from this stage' }, { status: 400 });
+  }
+
+  let designPath: string | null = null;
+  const form = await req.formData();
+  const designFile = form.get('design') as File | null;
+  const action = String(form.get('action') || '');
+
+  if (designFile && designFile.size > 0) {
+    if (!isAllowedFile(designFile.name, 'scan')) {
+      return Response.json({ error: 'Design file must be .stl or .ply' }, { status: 400 });
+    }
+    const buffer = Buffer.from(await designFile.arrayBuffer());
+    designPath = saveUpload(buffer, designFile.name, 'designs');
+  }
+
+  if (action === 'mark-ready') {
+    await run("UPDATE cases SET status = 'READY', updated_at = datetime('now') WHERE id = ?", [caseId]);
+  } else if (designPath) {
+    await run(
+      `UPDATE cases SET status = ?, design_path = ?, updated_at = datetime('now') WHERE id = ?`,
+      [next, designPath, caseId]
+    );
+  } else {
+    await run(`UPDATE cases SET status = ?, updated_at = datetime('now') WHERE id = ?`, [
+      next,
+      caseId,
+    ]);
+  }
+
+  if (designPath) {
+    await run(
+      `INSERT INTO messages (case_id, sender_user_id, body, file_path, file_name, is_image)
+       VALUES (?, ?, ?, ?, ?, 0)`,
+      [caseId, user.id, 'Lab uploaded a design file.', designPath, designFile!.name]
+    );
+  }
+
+  return Response.json({ ok: true, status: action === 'mark-ready' ? 'READY' : next });
+}

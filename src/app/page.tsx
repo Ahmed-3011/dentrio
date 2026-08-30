@@ -196,23 +196,150 @@ export default function HomePage() {
             <div className="orbit-ring orbit-ring-2"><div className="orbit-dot dot-lab" /></div>
             <div className="orbit-ring orbit-ring-3"><div className="orbit-dot dot-ship" /></div>
 
-            {/* Central tooth SVG */}
-            <svg className="h-36 w-36 drop-shadow-2xl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            {/* Floating & Rounding Dental Implant Bar + Overdenture Visual */}
+            <svg
+              className="dental-float-rounding h-44 w-44 drop-shadow-[0_15px_35px_rgba(42,127,255,0.45)] sm:h-52 sm:w-52"
+              viewBox="0 0 240 240"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <defs>
-                <linearGradient id="tg" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%"   stopColor="#A6F0FF" stopOpacity="0.9" />
-                  <stop offset="50%"  stopColor="#2A7FFF" stopOpacity="0.85" />
-                  <stop offset="100%" stopColor="#123B6B" stopOpacity="0.8" />
+                {/* Overdenture Pink/Gingiva Gradient */}
+                <linearGradient id="gingivaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#123B6B" stopOpacity="0.95" />
+                  <stop offset="50%" stopColor="#0E1B2A" stopOpacity="0.9" />
+                  <stop offset="100%" stopColor="#070A10" stopOpacity="0.95" />
+                </linearGradient>
+
+                {/* Titanium / Zirconia Bar Gradient */}
+                <linearGradient id="titaniumBar" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#2A7FFF" />
+                  <stop offset="50%" stopColor="#A6F0FF" />
+                  <stop offset="100%" stopColor="#2A7FFF" />
+                </linearGradient>
+
+                {/* Tooth Enamel Crown Gradient */}
+                <linearGradient id="crownGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
+                  <stop offset="40%" stopColor="#A6F0FF" stopOpacity="0.9" />
+                  <stop offset="100%" stopColor="#2A7FFF" stopOpacity="0.75" />
+                </linearGradient>
+
+                {/* Implant Fixture Thread Gradient */}
+                <linearGradient id="implantGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#A6F0FF" />
+                  <stop offset="50%" stopColor="#2A7FFF" />
+                  <stop offset="100%" stopColor="#123B6B" />
                 </linearGradient>
               </defs>
-              <path d="M70 60 Q100 30 130 60 Q140 80 135 100 Q100 110 65 100 Q60 80 70 60Z"
-                fill="url(#tg)" stroke="#A6F0FF" strokeWidth="1.5" opacity="0.95" />
-              <path d="M65 100 Q55 130 60 160 Q70 170 80 150 Q85 120 80 100Z"
-                fill="url(#tg)" stroke="#2A7FFF" strokeWidth="1" opacity="0.85" />
-              <path d="M135 100 Q145 130 140 160 Q130 170 120 150 Q115 120 120 100Z"
-                fill="url(#tg)" stroke="#2A7FFF" strokeWidth="1" opacity="0.85" />
-              <path d="M85 105 Q90 140 95 165 Q100 175 105 165 Q110 140 115 105Z"
-                fill="url(#tg)" stroke="#2A7FFF" strokeWidth="1" opacity="0.9" />
+
+              {/* ── 1. Implant Fixtures (4 Multi-Unit Dental Implants) ── */}
+              <g id="dental-implants" opacity="0.85">
+                {/* Implant 1 (Far Left) */}
+                <path d="M52 148 L56 182 L48 182 Z" fill="url(#implantGrad)" />
+                <line x1="47" y1="156" x2="57" y2="156" stroke="#A6F0FF" strokeWidth="1.5" />
+                <line x1="48" y1="164" x2="56" y2="164" stroke="#A6F0FF" strokeWidth="1.5" />
+                <line x1="49" y1="172" x2="55" y2="172" stroke="#A6F0FF" strokeWidth="1.5" />
+                
+                {/* Implant 2 (Center Left) */}
+                <path d="M96 156 L100 192 L92 192 Z" fill="url(#implantGrad)" />
+                <line x1="91" y1="166" x2="101" y2="166" stroke="#A6F0FF" strokeWidth="1.5" />
+                <line x1="92" y1="174" x2="100" y2="174" stroke="#A6F0FF" strokeWidth="1.5" />
+                <line x1="93" y1="182" x2="99" y2="182" stroke="#A6F0FF" strokeWidth="1.5" />
+
+                {/* Implant 3 (Center Right) */}
+                <path d="M144 156 L148 192 L140 192 Z" fill="url(#implantGrad)" />
+                <line x1="139" y1="166" x2="149" y2="166" stroke="#A6F0FF" strokeWidth="1.5" />
+                <line x1="140" y1="174" x2="148" y2="174" stroke="#A6F0FF" strokeWidth="1.5" />
+                <line x1="141" y1="182" x2="147" y2="182" stroke="#A6F0FF" strokeWidth="1.5" />
+
+                {/* Implant 4 (Far Right) */}
+                <path d="M188 148 L192 182 L184 182 Z" fill="url(#implantGrad)" />
+                <line x1="183" y1="156" x2="193" y2="156" stroke="#A6F0FF" strokeWidth="1.5" />
+                <line x1="184" y1="164" x2="192" y2="164" stroke="#A6F0FF" strokeWidth="1.5" />
+                <line x1="185" y1="172" x2="191" y2="172" stroke="#A6F0FF" strokeWidth="1.5" />
+              </g>
+
+              {/* ── 2. Rounded Titanium / Zirconia Implant Bar ── */}
+              <g id="implant-bar" className="dental-bar">
+                {/* Abutment Collars */}
+                <rect x="47" y="140" width="10" height="9" rx="2" fill="url(#titaniumBar)" />
+                <rect x="91" y="148" width="10" height="9" rx="2" fill="url(#titaniumBar)" />
+                <rect x="139" y="148" width="10" height="9" rx="2" fill="url(#titaniumBar)" />
+                <rect x="183" y="140" width="10" height="9" rx="2" fill="url(#titaniumBar)" />
+
+                {/* Rounded Arch Implant Framework Bar */}
+                <path
+                  d="M45 142 C 75 160, 165 160, 195 142 C 196 136, 185 132, 175 135 C 145 146, 95 146, 65 135 C 55 132, 44 136, 45 142 Z"
+                  fill="url(#titaniumBar)"
+                  stroke="#A6F0FF"
+                  strokeWidth="1.2"
+                />
+
+                {/* Locator / Retentive Attachments on Bar */}
+                <circle cx="70" cy="143" r="3.5" fill="#FFFFFF" stroke="#2A7FFF" strokeWidth="1.5" />
+                <circle cx="120" cy="151" r="3.5" fill="#FFFFFF" stroke="#2A7FFF" strokeWidth="1.5" />
+                <circle cx="170" cy="143" r="3.5" fill="#FFFFFF" stroke="#2A7FFF" strokeWidth="1.5" />
+              </g>
+
+              {/* ── 3. Overdenture Prosthesis (Pink Base + Crowns) ── */}
+              <g id="overdenture" className="dental-overdenture">
+                {/* Gingival Acrylic Base Arch */}
+                <path
+                  d="M38 126 C 60 150, 180 150, 202 126 C 210 114, 198 94, 182 92 C 145 88, 95 88, 58 92 C 42 94, 30 114, 38 126 Z"
+                  fill="url(#gingivaGrad)"
+                  stroke="rgba(42, 127, 255, 0.4)"
+                  strokeWidth="1.5"
+                />
+
+                {/* Crown 1: Left Molar (#19/20) */}
+                <path
+                  d="M48 108 C 44 94, 52 82, 62 84 C 70 85, 71 96, 68 110 C 60 114, 52 114, 48 108 Z"
+                  fill="url(#crownGrad)"
+                  stroke="#A6F0FF"
+                  strokeWidth="1"
+                />
+
+                {/* Crown 2: Left Premolar/Canine (#21/22) */}
+                <path
+                  d="M72 108 C 68 90, 75 74, 86 76 C 95 78, 96 92, 92 110 C 85 113, 78 112, 72 108 Z"
+                  fill="url(#crownGrad)"
+                  stroke="#A6F0FF"
+                  strokeWidth="1"
+                />
+
+                {/* Crown 3: Central Incisor (#24/25) */}
+                <path
+                  d="M96 112 C 93 88, 100 68, 114 70 C 122 71, 123 88, 118 114 C 110 116, 102 115, 96 112 Z"
+                  fill="url(#crownGrad)"
+                  stroke="#A6F0FF"
+                  strokeWidth="1.2"
+                />
+
+                {/* Crown 4: Central Incisor (#25/26) */}
+                <path
+                  d="M122 114 C 117 88, 118 71, 126 70 C 140 68, 147 88, 144 112 C 138 115, 130 116, 122 114 Z"
+                  fill="url(#crownGrad)"
+                  stroke="#A6F0FF"
+                  strokeWidth="1.2"
+                />
+
+                {/* Crown 5: Right Premolar/Canine (#27/28) */}
+                <path
+                  d="M148 110 C 144 92, 145 78, 154 76 C 165 74, 172 90, 168 108 C 162 112, 155 113, 148 110 Z"
+                  fill="url(#crownGrad)"
+                  stroke="#A6F0FF"
+                  strokeWidth="1"
+                />
+
+                {/* Crown 6: Right Molar (#29/30) */}
+                <path
+                  d="M172 110 C 169 96, 170 85, 178 84 C 188 82, 196 94, 192 108 C 188 114, 180 114, 172 110 Z"
+                  fill="url(#crownGrad)"
+                  stroke="#A6F0FF"
+                  strokeWidth="1"
+                />
+              </g>
             </svg>
 
             {/* Labels */}

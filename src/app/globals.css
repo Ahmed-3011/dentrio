@@ -248,3 +248,55 @@ html.light .dentrio-card {
   background: linear-gradient(90deg, transparent, #2A7FFF, #A6F0FF, transparent);
   opacity: 0.5;
 }
+
+/* ─── Floating & Rounding Dental Overdenture + Bar Animation ── */
+.dental-float-rounding {
+  animation: dentalFloatRound 7s ease-in-out infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.dental-overdenture {
+  animation: overdentureHover 5s ease-in-out infinite alternate;
+  transform-origin: center center;
+}
+
+.dental-bar {
+  animation: barPulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes dentalFloatRound {
+  0% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translateY(-8px) rotate(2.5deg) scale(1.02);
+  }
+  50% {
+    transform: translateY(-14px) rotate(-1.5deg) scale(1.03);
+  }
+  75% {
+    transform: translateY(-6px) rotate(-3deg) scale(1.01);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes overdentureHover {
+  0% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes barPulse {
+  0% {
+    filter: drop-shadow(0 0 4px rgba(42, 127, 255, 0.4));
+  }
+  100% {
+    filter: drop-shadow(0 0 16px rgba(166, 240, 255, 0.7));
+  }
+}

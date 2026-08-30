@@ -1,0 +1,273 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 800" width="100%" height="100%">
+  <defs>
+    <!-- Background / Lighting Gradients -->
+    <radialGradient id="specularGlow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Translucent Maxillary Bone Gradients -->
+    <linearGradient id="translucentPink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff7b92" stop-opacity="0.88"/>
+      <stop offset="35%" stop-color="#ff4d6d" stop-opacity="0.75"/>
+      <stop offset="75%" stop-color="#d90429" stop-opacity="0.65"/>
+      <stop offset="100%" stop-color="#590d22" stop-opacity="0.45"/>
+    </linearGradient>
+
+    <linearGradient id="innerBoneShadow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffb3c1" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#800f2f" stop-opacity="0.5"/>
+    </linearGradient>
+
+    <!-- Titanium Dental Implants -->
+    <linearGradient id="titaniumImplant" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#343a40"/>
+      <stop offset="25%" stop-color="#868e96"/>
+      <stop offset="45%" stop-color="#f8f9fa"/>
+      <stop offset="70%" stop-color="#495057"/>
+      <stop offset="100%" stop-color="#212529"/>
+    </linearGradient>
+
+    <!-- Gold / Brass Multi-Unit Abutment Collars -->
+    <linearGradient id="goldAbutment" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#996515"/>
+      <stop offset="20%" stop-color="#d4af37"/>
+      <stop offset="45%" stop-color="#fff3b0"/>
+      <stop offset="70%" stop-color="#e5a93c"/>
+      <stop offset="100%" stop-color="#664600"/>
+    </linearGradient>
+
+    <!-- CAD/CAM Milled Titanium Framework Bar -->
+    <linearGradient id="titaniumBar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#495057"/>
+      <stop offset="20%" stop-color="#ced4da"/>
+      <stop offset="40%" stop-color="#ffffff"/>
+      <stop offset="70%" stop-color="#6c757d"/>
+      <stop offset="100%" stop-color="#212529"/>
+    </linearGradient>
+
+    <!-- Natural Scalloped Gingiva (Lower Overdenture Gum Tissue) -->
+    <linearGradient id="gingivaGum" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ff5d8f"/>
+      <stop offset="35%" stop-color="#e01a4f"/>
+      <stop offset="85%" stop-color="#a4133c"/>
+      <stop offset="100%" stop-color="#590d22"/>
+    </linearGradient>
+
+    <!-- Porcelain / Zirconia Enamel Crown Teeth -->
+    <linearGradient id="porcelainEnamel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#f8f9fa"/>
+      <stop offset="85%" stop-color="#e9ecef"/>
+      <stop offset="100%" stop-color="#ced4da"/>
+    </linearGradient>
+
+    <linearGradient id="incisalTranslucency" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="75%" stop-color="#e2eafc" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#c1d3fe" stop-opacity="0.6"/>
+    </linearGradient>
+
+    <!-- Drop Shadow Filters -->
+    <filter id="shadowHeavy" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="15" stdDeviation="15" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+    <filter id="shadowBar" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- ═════════════════════════════════════════════════════════════════════ -->
+  <!-- 1. TRANSLUCENT MAXILLARY BONE / TEMPLATE & 4 VERTICAL IMPLANTS       -->
+  <!-- ═════════════════════════════════════════════════════════════════════ -->
+  <g id="layer-maxilla" filter="url(#shadowHeavy)">
+    <!-- Maxillary Anatomical Arch Contour (Semi-transparent Pink Base) -->
+    <path d="M120,240 C90,140 180,60 500,60 C820,60 910,140 880,240 C850,300 750,330 680,270 C590,200 410,200 320,270 C250,330 150,300 120,240 Z"
+          fill="url(#translucentPink)" stroke="rgba(255,255,255,0.6)" stroke-width="2.5"/>
+
+    <!-- Inner Palatal Ridge Reflection -->
+    <path d="M210,225 C310,170 690,170 790,225 C710,290 290,290 210,225 Z"
+          fill="url(#innerBoneShadow)" opacity="0.4"/>
+
+    <!-- Specular Highlight Curve on Arch -->
+    <path d="M145,210 C160,110 320,80 500,80 C680,80 840,110 855,210"
+          fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- 4 Threaded Titanium Implants Embedded Vertically in Bone -->
+    <!-- Implant 1: Left Molar (#18/19) -->
+    <g transform="translate(170, 155) rotate(14)">
+      <rect x="-16" y="0" width="32" height="85" rx="5" fill="url(#titaniumImplant)" stroke="#212529" stroke-width="1.5"/>
+      <line x1="-16" y1="18" x2="16" y2="12" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-16" y1="32" x2="16" y2="26" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-16" y1="46" x2="16" y2="40" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-16" y1="60" x2="16" y2="54" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-16" y1="74" x2="16" y2="68" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <ellipse cx="0" cy="85" rx="16" ry="6" fill="#212529"/>
+    </g>
+
+    <!-- Implant 2: Left Canine / Premolar (#22) -->
+    <g transform="translate(365, 130) rotate(5)">
+      <rect x="-18" y="0" width="36" height="95" rx="6" fill="url(#titaniumImplant)" stroke="#212529" stroke-width="1.5"/>
+      <line x1="-18" y1="20" x2="18" y2="14" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-18" y1="36" x2="18" y2="30" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-18" y1="52" x2="18" y2="46" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-18" y1="68" x2="18" y2="62" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-18" y1="84" x2="18" y2="78" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <ellipse cx="0" cy="95" rx="18" ry="6" fill="#212529"/>
+    </g>
+
+    <!-- Implant 3: Right Canine / Premolar (#27) -->
+    <g transform="translate(635, 130) rotate(-5)">
+      <rect x="-18" y="0" width="36" height="95" rx="6" fill="url(#titaniumImplant)" stroke="#212529" stroke-width="1.5"/>
+      <line x1="-18" y1="14" x2="18" y2="20" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-18" y1="30" x2="18" y2="36" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-18" y1="46" x2="18" y2="52" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-18" y1="62" x2="18" y2="68" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-18" y1="78" x2="18" y2="84" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <ellipse cx="0" cy="95" rx="18" ry="6" fill="#212529"/>
+    </g>
+
+    <!-- Implant 4: Right Molar (#30/31) -->
+    <g transform="translate(830, 155) rotate(-14)">
+      <rect x="-16" y="0" width="32" height="85" rx="5" fill="url(#titaniumImplant)" stroke="#212529" stroke-width="1.5"/>
+      <line x1="-16" y1="12" x2="16" y2="18" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-16" y1="26" x2="16" y2="32" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-16" y1="40" x2="16" y2="46" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-16" y1="54" x2="16" y2="60" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <line x1="-16" y1="68" x2="16" y2="74" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
+      <ellipse cx="0" cy="85" rx="16" ry="6" fill="#212529"/>
+    </g>
+  </g>
+
+  <!-- ═════════════════════════════════════════════════════════════════════ -->
+  <!-- 2. GOLD MULTI-UNIT ABUTMENTS (INTERMEDIATE CONNECTORS)               -->
+  <!-- ═════════════════════════════════════════════════════════════════════ -->
+  <g id="layer-abutments">
+    <!-- Abutment 1 -->
+    <g transform="translate(170, 275)">
+      <polygon points="-12,-8 12,-8 10,12 -10,12" fill="url(#goldAbutment)" stroke="#664600" stroke-width="1"/>
+      <rect x="-15" y="12" width="30" height="12" rx="3" fill="url(#goldAbutment)" stroke="#664600" stroke-width="1"/>
+      <ellipse cx="0" cy="24" rx="10" ry="4" fill="#664600"/>
+    </g>
+
+    <!-- Abutment 2 -->
+    <g transform="translate(365, 255)">
+      <polygon points="-14,-8 14,-8 11,14 -11,14" fill="url(#goldAbutment)" stroke="#664600" stroke-width="1"/>
+      <rect x="-17" y="14" width="34" height="14" rx="3" fill="url(#goldAbutment)" stroke="#664600" stroke-width="1"/>
+      <ellipse cx="0" cy="28" rx="12" ry="4.5" fill="#664600"/>
+    </g>
+
+    <!-- Abutment 3 -->
+    <g transform="translate(635, 255)">
+      <polygon points="-14,-8 14,-8 11,14 -11,14" fill="url(#goldAbutment)" stroke="#664600" stroke-width="1"/>
+      <rect x="-17" y="14" width="34" height="14" rx="3" fill="url(#goldAbutment)" stroke="#664600" stroke-width="1"/>
+      <ellipse cx="0" cy="28" rx="12" ry="4.5" fill="#664600"/>
+    </g>
+
+    <!-- Abutment 4 -->
+    <g transform="translate(830, 275)">
+      <polygon points="-12,-8 12,-8 10,12 -10,12" fill="url(#goldAbutment)" stroke="#664600" stroke-width="1"/>
+      <rect x="-15" y="12" width="30" height="12" rx="3" fill="url(#goldAbutment)" stroke="#664600" stroke-width="1"/>
+      <ellipse cx="0" cy="24" rx="10" ry="4" fill="#664600"/>
+    </g>
+  </g>
+
+  <!-- ═════════════════════════════════════════════════════════════════════ -->
+  <!-- 3. CAD/CAM MILLED TITANIUM FRAMEWORK BAR & FIXATION SCREWS           -->
+  <!-- ═════════════════════════════════════════════════════════════════════ -->
+  <g id="layer-titanium-bar" filter="url(#shadowBar)">
+    <!-- 3D Lower Edge / Extrusion of Bar -->
+    <path d="M140,345 C240,405 760,405 860,345 L860,360 C760,420 240,420 140,360 Z"
+          fill="#1b1e23"/>
+
+    <!-- Main Titanium Bar Surface Profile -->
+    <path d="M140,345 C240,405 760,405 860,345 C875,335 860,320 835,325 C750,380 250,380 165,325 C140,320 125,335 140,345 Z"
+          fill="url(#titaniumBar)" stroke="#e9ecef" stroke-width="2.5"/>
+
+    <!-- Specular Highlight Line Along Precision Milled Bar -->
+    <path d="M150,344 C250,400 750,400 850,344"
+          fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.95"/>
+
+    <!-- 4 Counter-sunk Screw Channels with Gold Collar Rings -->
+    <ellipse cx="170" cy="342" rx="16" ry="7" fill="#1b1e23" stroke="url(#goldAbutment)" stroke-width="3"/>
+    <ellipse cx="365" cy="374" rx="18" ry="8" fill="#1b1e23" stroke="url(#goldAbutment)" stroke-width="3"/>
+    <ellipse cx="635" cy="374" rx="18" ry="8" fill="#1b1e23" stroke="url(#goldAbutment)" stroke-width="3"/>
+    <ellipse cx="830" cy="342" rx="16" ry="7" fill="#1b1e23" stroke="url(#goldAbutment)" stroke-width="3"/>
+
+    <!-- 4 Floating Prosthetic Retaining Screws Below Bar -->
+    <g transform="translate(170, 395)">
+      <ellipse cx="0" cy="0" rx="9" ry="4" fill="#adb5bd" stroke="#495057" stroke-width="1"/>
+      <rect x="-3" y="0" width="6" height="15" fill="#6c757d"/>
+      <line x1="-5" y1="5" x2="5" y2="5" stroke="#f8f9fa" stroke-width="1.5"/>
+      <line x1="-5" y1="10" x2="5" y2="10" stroke="#f8f9fa" stroke-width="1.5"/>
+    </g>
+    <g transform="translate(365, 425)">
+      <ellipse cx="0" cy="0" rx="10" ry="4.5" fill="#adb5bd" stroke="#495057" stroke-width="1"/>
+      <rect x="-3.5" y="0" width="7" height="18" fill="#6c757d"/>
+      <line x1="-6" y1="6" x2="6" y2="6" stroke="#f8f9fa" stroke-width="1.5"/>
+      <line x1="-6" y1="12" x2="6" y2="12" stroke="#f8f9fa" stroke-width="1.5"/>
+    </g>
+    <g transform="translate(635, 425)">
+      <ellipse cx="0" cy="0" rx="10" ry="4.5" fill="#adb5bd" stroke="#495057" stroke-width="1"/>
+      <rect x="-3.5" y="0" width="7" height="18" fill="#6c757d"/>
+      <line x1="-6" y1="6" x2="6" y2="6" stroke="#f8f9fa" stroke-width="1.5"/>
+      <line x1="-6" y1="12" x2="6" y2="12" stroke="#f8f9fa" stroke-width="1.5"/>
+    </g>
+    <g transform="translate(830, 395)">
+      <ellipse cx="0" cy="0" rx="9" ry="4" fill="#adb5bd" stroke="#495057" stroke-width="1"/>
+      <rect x="-3" y="0" width="6" height="15" fill="#6c757d"/>
+      <line x1="-5" y1="5" x2="5" y2="5" stroke="#f8f9fa" stroke-width="1.5"/>
+      <line x1="-5" y1="10" x2="5" y2="10" stroke="#f8f9fa" stroke-width="1.5"/>
+    </g>
+  </g>
+
+  <!-- ═════════════════════════════════════════════════════════════════════ -->
+  <!-- 4. FULL ARCH LOWER OVERDENTURE PROSTHESIS WITH TEETH                 -->
+  <!-- ═════════════════════════════════════════════════════════════════════ -->
+  <g id="layer-overdenture" filter="url(#shadowHeavy)">
+    <!-- Scalloped Anatomical Pink Gingiva Base -->
+    <path d="M100,500 C180,450 820,450 900,500 C925,540 905,595 850,600 C760,605 240,605 150,600 C95,595 75,540 100,500 Z"
+          fill="url(#gingivaGum)" stroke="#c9184a" stroke-width="2.5"/>
+
+    <!-- Interdental Papillae Peaks between teeth -->
+    <path d="M100,500 Q150,470 200,510 Q260,470 320,515 Q390,470 460,520 Q500,475 540,520 Q610,470 680,515 Q740,470 800,510 Q850,470 900,500"
+          fill="none" stroke="#800f2f" stroke-width="3"/>
+
+    <!-- 10 High-Detail Anatomical Zirconia / Porcelain Crown Teeth -->
+    <path d="M110,515 C100,545 115,610 155,610 C175,610 178,555 168,520 C148,510 128,510 110,515 Z"
+          fill="url(#porcelainEnamel)" stroke="#dee2e6" stroke-width="1.5"/>
+
+    <path d="M170,522 C160,560 178,635 220,630 C240,628 240,565 230,525 C210,518 190,518 170,522 Z"
+          fill="url(#porcelainEnamel)" stroke="#dee2e6" stroke-width="1.5"/>
+
+    <path d="M232,527 C222,575 240,655 285,650 C308,648 308,575 292,530 C272,524 252,524 232,527 Z"
+          fill="url(#porcelainEnamel)" stroke="#dee2e6" stroke-width="1.5"/>
+
+    <path d="M295,532 C285,590 305,680 355,675 C378,672 378,585 360,535 C338,530 318,530 295,532 Z"
+          fill="url(#porcelainEnamel)" stroke="#dee2e6" stroke-width="1.5"/>
+
+    <path d="M362,536 C350,605 372,710 425,705 C450,702 452,600 435,540 C410,535 385,535 362,536 Z"
+          fill="url(#porcelainEnamel)" stroke="#dee2e6" stroke-width="1.5"/>
+
+    <path d="M438,540 C430,615 445,730 495,730 C518,730 520,615 508,542 C485,538 460,538 438,540 Z"
+          fill="url(#incisalTranslucency)" stroke="#ced4da" stroke-width="2"/>
+
+    <path d="M510,542 C498,615 500,730 522,730 C572,730 588,615 578,540 C555,538 532,538 510,542 Z"
+          fill="url(#incisalTranslucency)" stroke="#ced4da" stroke-width="2"/>
+
+    <path d="M580,540 C565,600 568,702 592,705 C645,710 668,605 655,536 C632,535 608,535 580,540 Z"
+          fill="url(#porcelainEnamel)" stroke="#dee2e6" stroke-width="1.5"/>
+
+    <path d="M658,535 C640,585 640,672 662,675 C712,680 732,590 722,532 C700,530 680,530 658,535 Z"
+          fill="url(#porcelainEnamel)" stroke="#dee2e6" stroke-width="1.5"/>
+
+    <path d="M725,530 C710,575 710,648 732,650 C778,655 795,575 785,527 C765,524 745,524 725,530 Z"
+          fill="url(#porcelainEnamel)" stroke="#dee2e6" stroke-width="1.5"/>
+
+    <path d="M788,525 C778,565 778,628 798,630 C840,635 858,560 848,522 C828,518 808,518 788,525 Z"
+          fill="url(#porcelainEnamel)" stroke="#dee2e6" stroke-width="1.5"/>
+
+    <path d="M850,520 C840,555 842,610 862,610 C902,610 918,545 908,515 C890,510 870,510 850,520 Z"
+          fill="url(#porcelainEnamel)" stroke="#dee2e6" stroke-width="1.5"/>
+  </g>
+</svg>

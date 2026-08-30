@@ -11,9 +11,9 @@ export default function Implant3DViewer() {
       {/* Clean floating, turntable rotating 3D overdenture assembly */}
       <div className="dental-float-rounding relative flex items-center justify-center drop-shadow-[0_25px_50px_rgba(42,127,255,0.45)]">
         <img
-          src="/image.png"
+          src="/image.svg"
           alt="3D Dental Implant Bar and Overdenture Prosthesis"
-          className="w-full max-w-[420px] sm:max-w-[480px] h-auto object-contain transition-all duration-700"
+          className="w-full max-w-[420px] sm:max-w-[500px] h-auto object-contain transition-all duration-700"
           style={{
             filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.6)) brightness(1.03) contrast(1.05)',
           }}

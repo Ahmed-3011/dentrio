@@ -196,90 +196,65 @@ export default function HomePage() {
             <div className="orbit-ring orbit-ring-2"><div className="orbit-dot dot-lab" title="Dental Lab" /></div>
             <div className="orbit-ring orbit-ring-3"><div className="orbit-dot dot-ship" title="Shipping" /></div>
 
-            {/* Artistic Low-Poly Crystal Tooth with Orbit Gradients */}
+            {/* Smooth Modern Glowing Dental Molar Silhouette */}
             <svg
-              className="artistic-tooth h-44 w-44 drop-shadow-[0_20px_45px_rgba(42,127,255,0.45)] sm:h-52 sm:w-52"
-              viewBox="0 0 240 240"
+              className="artistic-tooth h-40 w-40 drop-shadow-[0_15px_40px_rgba(42,127,255,0.5)] sm:h-48 sm:w-48"
+              viewBox="0 0 200 220"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
               <defs>
-                {/* 1. Crystal Enamel Crown Gradient */}
-                <linearGradient id="crystalCrown" x1="0%" y1="0%" x2="100%" y2="100%">
+                {/* Smooth Enamel Gradient */}
+                <linearGradient id="enamelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#A6F0FF" stopOpacity="0.95" />
-                  <stop offset="45%" stopColor="#2A7FFF" stopOpacity="0.85" />
-                  <stop offset="100%" stopColor="#123B6B" stopOpacity="0.9" />
-                </linearGradient>
-
-                {/* 2. Iridescent Facet Gradients */}
-                <linearGradient id="facetHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
-                  <stop offset="60%" stopColor="#A6F0FF" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#2A7FFF" stopOpacity="0.5" />
-                </linearGradient>
-
-                <linearGradient id="facetDeep" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#070A10" stopOpacity="0.95" />
-                  <stop offset="50%" stopColor="#0E1B2A" stopOpacity="0.9" />
+                  <stop offset="45%" stopColor="#2A7FFF" stopOpacity="0.9" />
                   <stop offset="100%" stopColor="#123B6B" stopOpacity="0.85" />
                 </linearGradient>
 
-                <linearGradient id="rootGlow" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#2A7FFF" />
-                  <stop offset="60%" stopColor="#123B6B" />
-                  <stop offset="100%" stopColor="#070A10" />
+                {/* Inner Glow Gradient */}
+                <linearGradient id="innerGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+                  <stop offset="50%" stopColor="#A6F0FF" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="transparent" />
                 </linearGradient>
               </defs>
 
-              {/* ── Faceted Low-Poly Crystal Tooth Structure ── */}
-              <g className="facet-pulse" stroke="#A6F0FF" strokeWidth="1.2" strokeLinejoin="round">
-                {/* Crown Cusp 1 (Top Left) */}
-                <polygon points="65,70 100,42 120,72 85,85" fill="url(#facetHighlight)" />
-                {/* Crown Cusp 2 (Top Right) */}
-                <polygon points="120,72 140,42 175,70 155,85" fill="url(#crystalCrown)" />
-                {/* Central Occlusal Valley */}
-                <polygon points="100,42 120,28 140,42 120,72" fill="url(#facetHighlight)" />
+              {/* Main Smooth Anatomical Molar Body */}
+              <path
+                d="M48 68 C 42 38, 70 28, 92 40 C 96 42, 104 42, 108 40 C 130 28, 158 38, 152 68 C 148 88, 156 112, 148 135 C 142 152, 138 175, 134 200 C 130 206, 120 206, 118 198 C 112 172, 108 140, 100 140 C 92 140, 88 172, 82 198 C 80 206, 70 206, 66 200 C 62 175, 58 152, 52 135 C 44 112, 52 88, 48 68 Z"
+                fill="url(#enamelGrad)"
+                stroke="#A6F0FF"
+                strokeWidth="2.5"
+                strokeLinejoin="round"
+              />
 
-                {/* Mid-Crown Buccal Facets */}
-                <polygon points="65,70 85,85 75,120 50,105" fill="url(#crystalCrown)" />
-                <polygon points="85,85 120,72 120,125 75,120" fill="url(#facetHighlight)" />
-                <polygon points="120,72 155,85 165,120 120,125" fill="url(#crystalCrown)" />
-                <polygon points="155,85 175,70 190,105 165,120" fill="url(#facetDeep)" />
+              {/* Smooth Enamel Crown Highlight Curves */}
+              <path
+                d="M58 65 C 56 46, 76 38, 92 48 C 96 50, 104 50, 108 48 C 124 38, 144 46, 142 65"
+                fill="none"
+                stroke="url(#innerGlow)"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+              />
 
-                {/* Cervical Margin / Waist Line */}
-                <polygon points="50,105 75,120 70,145 45,135" fill="url(#facetDeep)" />
-                <polygon points="75,120 120,125 120,150 70,145" fill="url(#crystalCrown)" />
-                <polygon points="120,125 165,120 170,145 120,150" fill="url(#facetHighlight)" />
-                <polygon points="165,120 190,105 195,135 170,145" fill="url(#facetDeep)" />
+              {/* Left Crown Contour Highlight */}
+              <path
+                d="M56 82 C 54 100, 60 120, 56 136"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="2"
+                strokeLinecap="round"
+                opacity="0.7"
+              />
 
-                {/* ── Anatomical Roots ── */}
-                {/* Left Root (Mesial Root) */}
-                <polygon points="45,135 70,145 60,185 40,165" fill="url(#rootGlow)" />
-                <polygon points="70,145 95,150 80,205 60,185" fill="url(#crystalCrown)" />
-                <polygon points="60,185 80,205 70,222 55,212" fill="url(#facetDeep)" />
-
-                {/* Central Furcation Fluting */}
-                <polygon points="95,150 120,150 120,185 95,170" fill="url(#facetDeep)" />
-                <polygon points="120,150 145,150 145,170 120,185" fill="url(#facetDeep)" />
-
-                {/* Right Root (Distal Root) */}
-                <polygon points="145,150 170,145 180,185 160,205" fill="url(#crystalCrown)" />
-                <polygon points="170,145 195,135 200,165 180,185" fill="url(#rootGlow)" />
-                <polygon points="180,185 160,205 170,222 185,212" fill="url(#facetDeep)" />
-              </g>
-
-              {/* ── Glowing Crystal Network Vertices / Nodes ── */}
-              <g fill="#FFFFFF">
-                <circle cx="120" cy="28" r="2.5" />
-                <circle cx="100" cy="42" r="2" />
-                <circle cx="140" cy="42" r="2" />
-                <circle cx="65" cy="70" r="2.5" />
-                <circle cx="175" cy="70" r="2.5" />
-                <circle cx="120" cy="72" r="3" />
-                <circle cx="120" cy="125" r="3" />
-                <circle cx="70" cy="222" r="2" />
-                <circle cx="170" cy="222" r="2" />
-              </g>
+              {/* Root Shadow Groove */}
+              <path
+                d="M100 140 L100 115"
+                stroke="#0E1B2A"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                opacity="0.6"
+              />
             </svg>
 
             {/* Role indicator badges below orbits */}

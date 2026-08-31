@@ -214,15 +214,15 @@ html.light .dentrio-card {
 /* ─── Orbit Animations ──────────────────────────────────────── */
 .orbit-ring {
   position: absolute;
-  border: 1px solid rgba(42, 127, 255, 0.2);
+  border: 1px solid rgba(42, 127, 255, 0.25);
   border-radius: 50%;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
 }
 
-.orbit-ring-1 { width: 280px; height: 280px; animation: orbitSpin 22s linear infinite; }
-.orbit-ring-2 { width: 370px; height: 370px; animation: orbitSpin 30s linear infinite reverse; }
-.orbit-ring-3 { width: 450px; height: 450px; animation: orbitSpin 38s linear infinite; }
+.orbit-ring-1 { width: 260px; height: 260px; animation: orbitSpin 20s linear infinite; }
+.orbit-ring-2 { width: 340px; height: 340px; animation: orbitSpin 28s linear infinite reverse; }
+.orbit-ring-3 { width: 420px; height: 420px; animation: orbitSpin 36s linear infinite; }
 
 @keyframes orbitSpin {
   from { transform: translate(-50%, -50%) rotate(0deg); }
@@ -231,11 +231,11 @@ html.light .dentrio-card {
 
 .orbit-dot {
   position: absolute;
-  width: 8px; height: 8px;
+  width: 9px; height: 9px;
   border-radius: 50%;
-  top: -4px; left: 50%;
+  top: -4.5px; left: 50%;
   transform: translateX(-50%);
-  box-shadow: 0 0 10px currentColor;
+  box-shadow: 0 0 12px currentColor;
 }
 
 .dot-dentist { background: var(--dentist); color: var(--dentist); }
@@ -249,71 +249,35 @@ html.light .dentrio-card {
   opacity: 0.5;
 }
 
-/* ─── Realistic Exploded Overdenture & Bar Animations ───────── */
-.exploded-assembly {
-  animation: assemblyFloatRound 8s ease-in-out infinite;
+/* ─── Artistic Low-Poly Crystal Tooth Animation ─────────────── */
+.artistic-tooth {
+  animation: toothBreathingFloat 6s ease-in-out infinite;
   transform-origin: center center;
   will-change: transform;
 }
 
-.layer-maxilla {
-  animation: maxillaDrift 6s ease-in-out infinite alternate;
-  transform-origin: center top;
-}
-
-.layer-bar {
-  animation: barFloat 5s ease-in-out infinite alternate;
-  transform-origin: center center;
-}
-
-.layer-denture {
-  animation: dentureFloat 7s ease-in-out infinite alternate;
-  transform-origin: center bottom;
-}
-
-@keyframes assemblyFloatRound {
+@keyframes toothBreathingFloat {
   0% {
-    transform: translateY(0px) rotate(0deg) scale(1);
-  }
-  25% {
-    transform: translateY(-10px) rotate(3deg) scale(1.02);
+    transform: translateY(0px) scale(1) rotate(0deg);
   }
   50% {
-    transform: translateY(-18px) rotate(-1.5deg) scale(1.04);
-  }
-  75% {
-    transform: translateY(-8px) rotate(-3.5deg) scale(1.01);
+    transform: translateY(-8px) scale(1.04) rotate(2deg);
   }
   100% {
-    transform: translateY(0px) rotate(0deg) scale(1);
+    transform: translateY(0px) scale(1) rotate(0deg);
   }
 }
 
-@keyframes maxillaDrift {
-  0% {
-    transform: translateY(0px);
-  }
-  100% {
-    transform: translateY(-6px);
-  }
+.facet-pulse {
+  animation: facetGlow 4s ease-in-out infinite alternate;
 }
 
-@keyframes barFloat {
+@keyframes facetGlow {
   0% {
-    transform: translateY(0px) scale(1);
-    filter: drop-shadow(0 4px 10px rgba(42, 127, 255, 0.4));
+    opacity: 0.85;
   }
   100% {
-    transform: translateY(3px) scale(1.01);
-    filter: drop-shadow(0 8px 24px rgba(166, 240, 255, 0.7));
-  }
-}
-
-@keyframes dentureFloat {
-  0% {
-    transform: translateY(0px);
-  }
-  100% {
-    transform: translateY(8px);
+    opacity: 1;
+    filter: drop-shadow(0 0 12px rgba(166, 240, 255, 0.6));
   }
 }

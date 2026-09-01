@@ -185,18 +185,19 @@ html.light .dentrio-card {
 /* ─── Scroll-Fade-In Animation ──────────────────────────────── */
 .fade-up {
   opacity: 0;
-  transform: translateY(36px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transform: translateY(40px) scale(0.97);
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
 }
 .fade-up.visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
-.fade-up-delay-1 { transition-delay: 0.1s; }
-.fade-up-delay-2 { transition-delay: 0.2s; }
-.fade-up-delay-3 { transition-delay: 0.3s; }
-.fade-up-delay-4 { transition-delay: 0.4s; }
+.fade-up-delay-1 { transition-delay: 0.12s; }
+.fade-up-delay-2 { transition-delay: 0.24s; }
+.fade-up-delay-3 { transition-delay: 0.36s; }
+.fade-up-delay-4 { transition-delay: 0.48s; }
 
 /* ─── Marquee Strip ─────────────────────────────────────────── */
 .marquee-track {
@@ -249,7 +250,7 @@ html.light .dentrio-card {
   opacity: 0.5;
 }
 
-/* ─── Artistic Low-Poly Crystal Tooth Animation ─────────────── */
+/* ─── Smooth Molar Tooth Animation ──────────────────────────── */
 .artistic-tooth {
   animation: toothBreathingFloat 6s ease-in-out infinite;
   transform-origin: center center;
@@ -261,23 +262,73 @@ html.light .dentrio-card {
     transform: translateY(0px) scale(1) rotate(0deg);
   }
   50% {
-    transform: translateY(-8px) scale(1.04) rotate(2deg);
+    transform: translateY(-8px) scale(1.04) rotate(1.5deg);
   }
   100% {
     transform: translateY(0px) scale(1) rotate(0deg);
   }
 }
 
-.facet-pulse {
-  animation: facetGlow 4s ease-in-out infinite alternate;
+/* ─── Aardvark Organic Morphing Liquid Curtain Transition ────── */
+.aardvark-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #070A10;
+  pointer-events: none;
+  transition: clip-path 1.3s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.6s ease 0.8s;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  will-change: clip-path, opacity;
 }
 
-@keyframes facetGlow {
+.aardvark-overlay.reveal-active {
+  clip-path: polygon(0 0, 100% 0, 100% 0%, 0 0%);
+  opacity: 0;
+}
+
+.intro-brand-box {
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
+  will-change: transform, opacity;
+}
+
+.intro-brand-box.zoom-dissolve {
+  transform: scale(1.25) translateY(-20px);
+  opacity: 0;
+}
+
+.intro-logo-pulse {
+  animation: introLogoPulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes introLogoPulse {
   0% {
-    opacity: 0.85;
+    transform: scale(0.95);
+    filter: drop-shadow(0 0 20px rgba(42, 127, 255, 0.45));
   }
   100% {
-    opacity: 1;
-    filter: drop-shadow(0 0 12px rgba(166, 240, 255, 0.6));
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 50px rgba(166, 240, 255, 0.95));
   }
 }
+
+/* ─── Post-Reveal Hero Explosion Animation ──────────────────── */
+.hero-stagger-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-stagger-in.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.25s; }
+.stagger-3 { transition-delay: 0.4s; }
+.stagger-4 { transition-delay: 0.55s; }
+.stagger-visual { transition-delay: 0.35s; }

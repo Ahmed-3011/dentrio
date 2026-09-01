@@ -54,7 +54,10 @@ const MARQUEE_ITEMS = [
   '✅ Design Approval', '💬 Case Chat', '🧊 3D Scan Viewer',
 ];
 
-function useFadeUp() {
+export default function HomePage() {
+  const { theme, toggleTheme } = useTheme();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   useEffect(() => {
     const els = document.querySelectorAll<HTMLElement>('.fade-up');
     const obs = new IntersectionObserver(
@@ -66,17 +69,11 @@ function useFadeUp() {
           }
         });
       },
-      { threshold: 0.12 }
+      { threshold: 0.1 }
     );
     els.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
   }, []);
-}
-
-export default function HomePage() {
-  const { theme, toggleTheme } = useTheme();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  useFadeUp();
 
   return (
     <div className="relative min-h-screen">
@@ -153,23 +150,23 @@ export default function HomePage() {
         <section className="mx-auto flex max-w-7xl flex-col items-center gap-10 px-5 pt-20 pb-16 sm:px-8 lg:flex-row lg:gap-16 lg:pt-28 lg:pb-24">
           {/* Left — text */}
           <div className="flex-1 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(42,127,255,0.3)] bg-[var(--accent-dim)] px-4 py-1.5 text-xs font-bold text-[var(--accent-light)] fade-up">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(42,127,255,0.3)] bg-[var(--accent-dim)] px-4 py-1.5 text-xs font-bold text-[var(--accent-light)]">
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
               The Connected Dental Platform
             </div>
 
-            <h1 className="mt-7 text-5xl font-black leading-[1.08] tracking-tight text-[var(--text)] sm:text-6xl xl:text-7xl fade-up fade-up-delay-1">
+            <h1 className="mt-7 text-5xl font-black leading-[1.08] tracking-tight text-[var(--text)] sm:text-6xl xl:text-7xl">
               One platform.<br />
               <span className="bg-gradient-to-r from-[var(--accent-light)] via-[var(--accent)] to-[var(--lab)] bg-clip-text text-transparent">
                 Three connected worlds.
               </span>
             </h1>
 
-            <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[var(--text-muted)] sm:text-lg lg:mx-0 fade-up fade-up-delay-2">
+            <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[var(--text-muted)] sm:text-lg lg:mx-0">
               Dentrio connects <strong className="text-[var(--text)]">dentists, dental labs, and shipping companies</strong> in one shared case workflow — built around in-browser 3D dental scan previews instead of lost emails and scattered files.
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-4 lg:justify-start fade-up fade-up-delay-3">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-4 lg:justify-start">
               <Link href="/signup" className="btn-accent rounded-xl px-8 py-3.5 text-base">
                 Create Account
               </Link>
@@ -180,7 +177,7 @@ export default function HomePage() {
             </div>
 
             {/* Mini stats */}
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 lg:justify-start fade-up fade-up-delay-4">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 lg:justify-start">
               {[['3', 'Connected Roles'], ['1', 'Shared Case Record'], ['0', 'Lost Attachments']].map(([n, l]) => (
                 <div key={l} className="text-center lg:text-left">
                   <p className="text-3xl font-black text-[var(--accent)]">{n}</p>
@@ -191,7 +188,7 @@ export default function HomePage() {
           </div>
 
           {/* Right — Concentric Animated Orbit Rings & Central Tooth Visual */}
-          <div className="relative flex h-72 w-72 flex-shrink-0 items-center justify-center sm:h-96 sm:w-96 fade-up fade-up-delay-2">
+          <div className="relative flex h-72 w-72 flex-shrink-0 items-center justify-center sm:h-96 sm:w-96">
             <div className="orbit-ring orbit-ring-1"><div className="orbit-dot dot-dentist" title="Dentist" /></div>
             <div className="orbit-ring orbit-ring-2"><div className="orbit-dot dot-lab" title="Dental Lab" /></div>
             <div className="orbit-ring orbit-ring-3"><div className="orbit-dot dot-ship" title="Shipping" /></div>

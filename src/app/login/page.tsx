@@ -44,51 +44,60 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-4 sm:p-6 lg:p-8 bg-[#070A10] text-[var(--text)]">
+      {/* ── Background Looping Azure Horizon Video ──────────────────── */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-40 scale-105"
+      >
+        <source
+          src="https://motionbgs.com/media/9760/azure-horizon.960x540.mp4"
+          type="video/mp4"
+        />
+      </video>
+
+      {/* Dark Vignette & Mesh Overlay matching #070A10 and #123B6B */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#070A10]/70 via-[#070A10]/50 to-[#070A10]/85 backdrop-blur-[2px]" />
+
       {/* Theme Toggle in Header Corner */}
-      <div className="absolute top-5 right-5">
+      <div className="absolute top-5 right-5 z-20">
         <button
           onClick={toggleTheme}
           type="button"
           aria-label="Toggle Theme"
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-[rgba(42,127,255,0.25)] bg-[#0E1B2A]/80 text-[var(--text)] shadow-lg backdrop-blur-md transition hover:border-[var(--accent)]"
         >
-          {theme === 'dark' ? (
-            <svg className="h-5 w-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          ) : (
-            <svg className="h-5 w-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-          )}
+          {theme === 'dark' ? '☀️' : '🌙'}
         </button>
       </div>
 
-      <div className="w-full max-w-md">
+      <div className="relative z-10 w-full max-w-md">
         {/* Brand Header */}
         <div className="mb-6 text-center">
           <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--dentist)] to-[var(--lab)] text-xl font-bold text-[#0a0e17] shadow-md">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--dentist)] to-[var(--lab)] text-xl font-bold text-[#070A10] shadow-lg shadow-[var(--accent-glow)]">
               ◈
             </div>
-            <span className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              Dentrio<span className="text-sky-600 dark:text-sky-400">.</span>
+            <span className="text-3xl font-extrabold tracking-tight text-white drop-shadow-md">
+              Dentrio<span className="text-[var(--accent)]">.</span>
             </span>
           </Link>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          <h1 className="mt-4 text-2xl font-bold tracking-tight text-white drop-shadow-sm">
             Sign in to your account
           </h1>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
             Dental clinic, lab & logistics orchestration
           </p>
         </div>
 
-        {/* Clean High-Contrast Card */}
-        <div className="dentrio-card rounded-2xl p-6 sm:p-8">
+        {/* Clean Glassmorphic Card */}
+        <div className="rounded-2xl border border-[rgba(42,127,255,0.25)] bg-[#0E1B2A]/80 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
                 Username or Email
               </label>
               <input
@@ -98,12 +107,12 @@ export default function LoginPage() {
                 placeholder="e.g. user or user@email.com"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-medium placeholder:text-slate-400"
+                className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
               />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
                 Password
               </label>
               <input
@@ -113,12 +122,12 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-medium placeholder:text-slate-400"
+                className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
               />
             </div>
 
             {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700 dark:border-red-900/50 dark:bg-red-950/50 dark:text-red-300">
+              <div className="rounded-xl border border-red-500/30 bg-red-950/50 p-3 text-xs font-semibold text-red-400">
                 {error}
               </div>
             )}
@@ -126,7 +135,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={busy}
-              className="btn-accent flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-[#0a0e17] shadow-sm disabled:opacity-50"
+              className="btn-accent flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-[#070A10] shadow-md disabled:opacity-50"
             >
               {busy ? 'Authenticating…' : 'Sign In'}
             </button>
@@ -134,9 +143,9 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="mt-6 text-center text-xs font-medium text-slate-600 dark:text-slate-400">
+        <p className="mt-6 text-center text-xs font-medium text-[var(--text-muted)]">
           Need a clinic or lab account?{' '}
-          <Link href="/signup" className="font-bold text-sky-600 hover:underline dark:text-sky-400">
+          <Link href="/signup" className="font-bold text-[var(--accent-light)] hover:underline">
             Create Profile
           </Link>
         </p>

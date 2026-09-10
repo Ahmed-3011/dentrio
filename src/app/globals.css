@@ -64,6 +64,15 @@ html.light {
   --font-mono: var(--font-geist-mono), monospace;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  overscroll-behavior-y: none;
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);
@@ -71,57 +80,69 @@ body {
   min-height: 100vh;
   transition: background-color 0.2s ease, color 0.2s ease;
   overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* ─── Ambient Floating Blobs ─────────────────────────────────── */
+/* ─── GPU-Accelerated Hardware-Composited Background Blobs ───── */
 .blob-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+  contain: strict;
+  transform: translate3d(0, 0, 0);
 }
 
 .blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.25;
+  pointer-events: none;
   will-change: transform;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
 }
 
 .blob-1 {
-  width: 600px; height: 600px;
-  background: radial-gradient(circle, #2A7FFF 0%, transparent 70%);
-  top: -10%; left: -8%;
-  animation: blobDrift1 18s ease-in-out infinite;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(42, 127, 255, 0.15) 0%, rgba(42, 127, 255, 0.05) 45%, transparent 70%);
+  top: -5%;
+  left: -5%;
+  animation: blobDrift1 22s ease-in-out infinite;
 }
+
 .blob-2 {
-  width: 500px; height: 500px;
-  background: radial-gradient(circle, #123B6B 0%, transparent 70%);
-  top: 40%; right: -12%;
-  animation: blobDrift2 22s ease-in-out infinite;
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(18, 59, 107, 0.25) 0%, rgba(18, 59, 107, 0.08) 45%, transparent 70%);
+  top: 45%;
+  right: -10%;
+  animation: blobDrift2 26s ease-in-out infinite;
 }
+
 .blob-3 {
-  width: 400px; height: 400px;
-  background: radial-gradient(circle, #A6F0FF 0%, transparent 70%);
-  bottom: -5%; left: 35%;
-  animation: blobDrift3 26s ease-in-out infinite;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(166, 240, 255, 0.12) 0%, rgba(166, 240, 255, 0.03) 45%, transparent 70%);
+  bottom: -5%;
+  left: 30%;
+  animation: blobDrift3 30s ease-in-out infinite;
 }
 
 @keyframes blobDrift1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%       { transform: translate(60px, 40px) scale(1.08); }
-  66%       { transform: translate(-30px, 60px) scale(0.95); }
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%       { transform: translate3d(40px, 30px, 0) scale(1.06); }
 }
 @keyframes blobDrift2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  40%       { transform: translate(-50px, -60px) scale(1.1); }
-  70%       { transform: translate(40px, 30px) scale(0.92); }
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%       { transform: translate3d(-35px, -40px, 0) scale(1.08); }
 }
 @keyframes blobDrift3 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%       { transform: translate(30px, -50px) scale(1.12); }
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%       { transform: translate3d(25px, -30px, 0) scale(1.05); }
 }
 
 /* Fine grid overlay */
@@ -129,8 +150,8 @@ body {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(42, 127, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(42, 127, 255, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(42, 127, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(42, 127, 255, 0.035) 1px, transparent 1px);
   background-size: 60px 60px;
   z-index: 0;
   pointer-events: none;
@@ -140,8 +161,12 @@ body {
 .dentrio-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border);
-  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.4);
-  transition: all 0.25s ease;
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dentrio-card:hover {
+  border-color: rgba(42, 127, 255, 0.35);
 }
 
 html.light .dentrio-card {
@@ -154,7 +179,7 @@ html.light .dentrio-card {
   border: 1px solid var(--input-border);
   color: var(--input-text);
   font-weight: 500;
-  transition: all 0.15s ease-in-out;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .dentrio-input::placeholder {
@@ -173,70 +198,99 @@ html.light .dentrio-card {
   background: linear-gradient(135deg, #2A7FFF, #1a5be8);
   color: #ffffff;
   font-weight: 700;
-  transition: all 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   box-shadow: 0 4px 18px rgba(42, 127, 255, 0.4);
 }
 
 .btn-accent:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(42, 127, 255, 0.55);
+  transform: translate3d(0, -2px, 0);
+  box-shadow: 0 8px 26px rgba(42, 127, 255, 0.55);
 }
 
-/* ─── Scroll-Fade-In Animation ──────────────────────────────── */
+/* ─── Smooth 60fps Scroll Reveal Animation ──────────────────── */
 .fade-up {
   opacity: 0;
-  transform: translateY(40px) scale(0.97);
-  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translate3d(0, 24px, 0);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
+  backface-visibility: hidden;
 }
+
 .fade-up.visible {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translate3d(0, 0, 0);
 }
 
-.fade-up-delay-1 { transition-delay: 0.12s; }
-.fade-up-delay-2 { transition-delay: 0.24s; }
-.fade-up-delay-3 { transition-delay: 0.36s; }
-.fade-up-delay-4 { transition-delay: 0.48s; }
+.fade-up-delay-1 { transition-delay: 0.08s; }
+.fade-up-delay-2 { transition-delay: 0.16s; }
+.fade-up-delay-3 { transition-delay: 0.24s; }
+.fade-up-delay-4 { transition-delay: 0.32s; }
 
-/* ─── Marquee Strip ─────────────────────────────────────────── */
+/* ─── Infinite Marquee Strip ────────────────────────────────── */
 .marquee-track {
   display: flex;
   gap: 3rem;
-  animation: marquee 28s linear infinite;
+  animation: marquee 24s linear infinite;
   white-space: nowrap;
+  will-change: transform;
 }
 
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
 }
 
-/* ─── Orbit Animations ──────────────────────────────────────── */
+/* ─── Ultra-Smooth Orbit Ring Animations ────────────────────── */
 .orbit-ring {
   position: absolute;
   border: 1px solid rgba(42, 127, 255, 0.25);
   border-radius: 50%;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
-.orbit-ring-1 { width: 260px; height: 260px; animation: orbitSpin 20s linear infinite; }
-.orbit-ring-2 { width: 340px; height: 340px; animation: orbitSpin 28s linear infinite reverse; }
-.orbit-ring-3 { width: 420px; height: 420px; animation: orbitSpin 36s linear infinite; }
+.orbit-ring-1 {
+  width: 250px;
+  height: 250px;
+  transform: translate3d(-50%, -50%, 0);
+  animation: orbitSpin1 22s linear infinite;
+}
 
-@keyframes orbitSpin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to   { transform: translate(-50%, -50%) rotate(360deg); }
+.orbit-ring-2 {
+  width: 330px;
+  height: 330px;
+  transform: translate3d(-50%, -50%, 0);
+  animation: orbitSpin2 30s linear infinite;
+}
+
+.orbit-ring-3 {
+  width: 410px;
+  height: 410px;
+  transform: translate3d(-50%, -50%, 0);
+  animation: orbitSpin1 38s linear infinite;
+}
+
+@keyframes orbitSpin1 {
+  from { transform: translate3d(-50%, -50%, 0) rotate(0deg); }
+  to   { transform: translate3d(-50%, -50%, 0) rotate(360deg); }
+}
+
+@keyframes orbitSpin2 {
+  from { transform: translate3d(-50%, -50%, 0) rotate(360deg); }
+  to   { transform: translate3d(-50%, -50%, 0) rotate(0deg); }
 }
 
 .orbit-dot {
   position: absolute;
-  width: 9px; height: 9px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  top: -4.5px; left: 50%;
+  top: -4.5px;
+  left: 50%;
   transform: translateX(-50%);
-  box-shadow: 0 0 12px currentColor;
+  box-shadow: 0 0 10px currentColor;
 }
 
 .dot-dentist { background: var(--dentist); color: var(--dentist); }
@@ -247,88 +301,26 @@ html.light .dentrio-card {
 .glow-line {
   height: 1px;
   background: linear-gradient(90deg, transparent, #2A7FFF, #A6F0FF, transparent);
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
-/* ─── Smooth Molar Tooth Animation ──────────────────────────── */
+/* ─── Hardware-Accelerated Floating Molar Animation ─────────── */
 .artistic-tooth {
-  animation: toothBreathingFloat 6s ease-in-out infinite;
+  animation: toothBreathingFloat 5s ease-in-out infinite;
   transform-origin: center center;
   will-change: transform;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
 }
 
 @keyframes toothBreathingFloat {
   0% {
-    transform: translateY(0px) scale(1) rotate(0deg);
+    transform: translate3d(0, 0px, 0) scale(1);
   }
   50% {
-    transform: translateY(-8px) scale(1.04) rotate(1.5deg);
+    transform: translate3d(0, -6px, 0) scale(1.03);
   }
   100% {
-    transform: translateY(0px) scale(1) rotate(0deg);
+    transform: translate3d(0, 0px, 0) scale(1);
   }
 }
-
-/* ─── Aardvark Organic Morphing Liquid Curtain Transition ────── */
-.aardvark-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #070A10;
-  pointer-events: none;
-  transition: clip-path 1.3s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.6s ease 0.8s;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-  will-change: clip-path, opacity;
-}
-
-.aardvark-overlay.reveal-active {
-  clip-path: polygon(0 0, 100% 0, 100% 0%, 0 0%);
-  opacity: 0;
-}
-
-.intro-brand-box {
-  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
-  will-change: transform, opacity;
-}
-
-.intro-brand-box.zoom-dissolve {
-  transform: scale(1.25) translateY(-20px);
-  opacity: 0;
-}
-
-.intro-logo-pulse {
-  animation: introLogoPulse 1.8s ease-in-out infinite alternate;
-}
-
-@keyframes introLogoPulse {
-  0% {
-    transform: scale(0.95);
-    filter: drop-shadow(0 0 20px rgba(42, 127, 255, 0.45));
-  }
-  100% {
-    transform: scale(1.06);
-    filter: drop-shadow(0 0 50px rgba(166, 240, 255, 0.95));
-  }
-}
-
-/* ─── Post-Reveal Hero Explosion Animation ──────────────────── */
-.hero-stagger-in {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.hero-stagger-in.active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.stagger-1 { transition-delay: 0.1s; }
-.stagger-2 { transition-delay: 0.25s; }
-.stagger-3 { transition-delay: 0.4s; }
-.stagger-4 { transition-delay: 0.55s; }
-.stagger-visual { transition-delay: 0.35s; }

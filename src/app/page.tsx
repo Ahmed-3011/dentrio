@@ -193,66 +193,15 @@ export default function HomePage() {
             <div className="orbit-ring orbit-ring-2"><div className="orbit-dot dot-lab" title="Dental Lab" /></div>
             <div className="orbit-ring orbit-ring-3"><div className="orbit-dot dot-ship" title="Shipping" /></div>
 
-            {/* Smooth Modern Glowing Dental Molar Silhouette */}
-            <svg
-              className="artistic-tooth h-40 w-40 drop-shadow-[0_15px_40px_rgba(42,127,255,0.5)] sm:h-48 sm:w-48"
-              viewBox="0 0 200 220"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                {/* Smooth Enamel Gradient */}
-                <linearGradient id="enamelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#A6F0FF" stopOpacity="0.95" />
-                  <stop offset="45%" stopColor="#2A7FFF" stopOpacity="0.9" />
-                  <stop offset="100%" stopColor="#123B6B" stopOpacity="0.85" />
-                </linearGradient>
-
-                {/* Inner Glow Gradient */}
-                <linearGradient id="innerGlow" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-                  <stop offset="50%" stopColor="#A6F0FF" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="transparent" />
-                </linearGradient>
-              </defs>
-
-              {/* Main Smooth Anatomical Molar Body */}
-              <path
-                d="M48 68 C 42 38, 70 28, 92 40 C 96 42, 104 42, 108 40 C 130 28, 158 38, 152 68 C 148 88, 156 112, 148 135 C 142 152, 138 175, 134 200 C 130 206, 120 206, 118 198 C 112 172, 108 140, 100 140 C 92 140, 88 172, 82 198 C 80 206, 70 206, 66 200 C 62 175, 58 152, 52 135 C 44 112, 52 88, 48 68 Z"
-                fill="url(#enamelGrad)"
-                stroke="#A6F0FF"
-                strokeWidth="2.5"
-                strokeLinejoin="round"
+            {/* Central Embedded Lottie Animation */}
+            <div className="relative z-10 flex h-48 w-48 items-center justify-center overflow-hidden rounded-full drop-shadow-[0_15px_40px_rgba(42,127,255,0.45)] sm:h-56 sm:w-56 pointer-events-none">
+              <iframe
+                src="https://lottie.host/embed/d7ef5f9c-658b-4685-9c04-c04d93aa0bdf/XGuvK53YBG.json"
+                className="h-full w-full border-0 pointer-events-none scale-125"
+                title="Dental Orbit Animation"
+                allowTransparency
               />
-
-              {/* Smooth Enamel Crown Highlight Curves */}
-              <path
-                d="M58 65 C 56 46, 76 38, 92 48 C 96 50, 104 50, 108 48 C 124 38, 144 46, 142 65"
-                fill="none"
-                stroke="url(#innerGlow)"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-              />
-
-              {/* Left Crown Contour Highlight */}
-              <path
-                d="M56 82 C 54 100, 60 120, 56 136"
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth="2"
-                strokeLinecap="round"
-                opacity="0.7"
-              />
-
-              {/* Root Shadow Groove */}
-              <path
-                d="M100 140 L100 115"
-                stroke="#0E1B2A"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                opacity="0.6"
-              />
-            </svg>
+            </div>
 
             {/* Role indicator badges below orbits */}
             <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex gap-5">

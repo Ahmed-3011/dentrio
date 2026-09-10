@@ -31,7 +31,7 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Invalid username or password');
+        setError(data.error || 'Invalid username, email, phone number, or password');
         setBusy(false);
         return;
       }
@@ -95,13 +95,13 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                Username or Email
+                Username, Email, or Phone Number
               </label>
               <input
                 type="text"
                 autoComplete="username"
                 required
-                placeholder="e.g. user or user@email.com"
+                placeholder="e.g. user, user@email.com, or +1555..."
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"

@@ -13,11 +13,25 @@ const ROLE_HOME: Record<Role, string> = {
   SHIPPING: '/shipping',
 };
 
+const LAB_SPECIALTY_CHOICES = [
+  'Crowns & Bridges',
+  'Zirconia & Ceramics',
+  'Clear Aligners',
+  'Porcelain Veneers',
+  'Full & Partial Dentures',
+  'Dental Implants & Custom Bars',
+  'Inlays & Onlays',
+  'Orthodontic Appliances',
+  'Nightguards & Splints',
+  'Maxillofacial Prosthetics',
+];
+
 export default function SignupPage() {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
   const [role, setRole] = useState<Role>('DENTIST');
   const [form, setForm] = useState<Record<string, string>>({});
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -25,13 +39,19 @@ export default function SignupPage() {
     setForm((f) => ({ ...f, [field]: value }));
   }
 
+  function toggleSpecialty(s: string) {
+    setSelectedSpecialties((prev) =>
+      prev.includes(s) ? prev.filter((item) => item !== s) : [...prev, s]
+    );
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError('');
 
-    if (!form.email || !form.password || !form.username || !form.name) {
-      setError('Please complete all required fields.');
+    if (!form.email || !form.password || !form.username || !form.name || !form.phone) {
+      setError('Please complete all required fields including your phone number.');
       setBusy(false);
       return;
     }
@@ -39,16 +59,17 @@ export default function SignupPage() {
     const payload = {
       email: form.email.trim(),
       username: form.username.trim(),
+      phone: form.phone.trim(),
       password: form.password,
       name: form.name.trim(),
       role,
       clinicName: form.clinicName?.trim() || form.name.trim(),
       labName: form.labName?.trim() || form.name.trim(),
       companyName: form.companyName?.trim() || form.name.trim(),
-      specialties: form.specialties?.trim() || '',
-      materials: form.materials?.trim() || '',
+      specialties: role === 'LAB' ? selectedSpecialties.join(', ') : '',
       turnaroundDays: form.turnaroundDays ? Number(form.turnaroundDays) : 3,
       address: form.address?.trim() || '',
+      mapsUrl: form.mapsUrl?.trim() || '',
     };
 
     try {
@@ -73,7 +94,7 @@ export default function SignupPage() {
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-4 sm:p-6 lg:p-8 bg-[#070A10] text-[var(--text)]">
-      {/* ── Background Looping Fall Forest Video (Saved Offline) ──── */}
+      {/* ── Background Looping Fall Forest Video ────────────────────── */}
       <video
         autoPlay
         muted
@@ -99,7 +120,7 @@ export default function SignupPage() {
         </button>
       </div>
 
-      <div className="relative z-10 w-full max-w-lg my-6">
+      <div className="relative z-10 w-full max-w-xl my-8">
         {/* Brand Header */}
         <div className="mb-6 text-center">
           <Link href="/" className="inline-flex items-center gap-2.5">
@@ -119,7 +140,7 @@ export default function SignupPage() {
         </div>
 
         {/* Glassmorphic Signup Card */}
-        <div className="rounded-2xl border border-[rgba(42,127,255,0.25)] bg-[#0E1B2A]/85 p-5 sm:p-8 shadow-2xl backdrop-blur-xl">
+        <div className="rounded-2xl border border-[rgba(42,127,255,0.25)] bg-[#0E1B2A]/90 p-5 sm:p-8 shadow-2xl backdrop-blur-xl">
           {/* Role Picker */}
           <div>
             <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
@@ -144,7 +165,7 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <form onSubmit={onSubmit} className="mt-5 space-y-4">
+          <form onSubmit={onSubmit} className="mt-6 space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
@@ -193,18 +214,32 @@ export default function SignupPage() {
 
               <div>
                 <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                  Password *
+                  Phone Number *
                 </label>
                 <input
-                  type="password"
+                  type="tel"
                   required
-                  minLength={6}
-                  placeholder="At least 6 characters"
-                  value={form.password || ''}
-                  onChange={(e) => set('password', e.target.value)}
+                  placeholder="+1 (555) 000-0000"
+                  value={form.phone || ''}
+                  onChange={(e) => set('phone', e.target.value)}
                   className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                Password *
+              </label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                placeholder="At least 6 characters"
+                value={form.password || ''}
+                onChange={(e) => set('password', e.target.value)}
+                className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
+              />
             </div>
 
             {/* Dynamic Role Fields */}
@@ -215,7 +250,7 @@ export default function SignupPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Downtown Dental Care"
+                  placeholder="e.g. Apex Precision Dental Care"
                   value={form.clinicName || ''}
                   onChange={(e) => set('clinicName', e.target.value)}
                   className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
@@ -239,36 +274,46 @@ export default function SignupPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                      Specialties
+                {/* Lab Specialties Checkbox Choices (Materials Removed) */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                      Lab Specialties (Select All That Apply)
                     </label>
-                    <input
-                      type="text"
-                      placeholder="Crowns, Bridges, Aligners"
-                      value={form.specialties || ''}
-                      onChange={(e) => set('specialties', e.target.value)}
-                      className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
-                    />
+                    <span className="text-[10px] font-mono text-[var(--accent-light)]">
+                      {selectedSpecialties.length} Selected
+                    </span>
                   </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                      Materials
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Zirconia, EMAX, Titanium"
-                      value={form.materials || ''}
-                      onChange={(e) => set('materials', e.target.value)}
-                      className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
-                    />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto rounded-xl border border-[rgba(42,127,255,0.2)] bg-[#070A10]/60 p-3">
+                    {LAB_SPECIALTY_CHOICES.map((spec) => {
+                      const isChecked = selectedSpecialties.includes(spec);
+                      return (
+                        <label
+                          key={spec}
+                          onClick={() => toggleSpecialty(spec)}
+                          className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition text-xs font-semibold select-none ${
+                            isChecked
+                              ? 'bg-[var(--accent-dim)] text-[var(--accent-light)] border border-[rgba(42,127,255,0.35)]'
+                              : 'text-[var(--text-muted)] hover:bg-[#123B6B]/30 hover:text-white border border-transparent'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {}}
+                            className="h-4 w-4 rounded border-[#123B6B] bg-[#070A10] text-[var(--accent)] focus:ring-0 cursor-pointer accent-[var(--accent)]"
+                          />
+                          <span>{spec}</span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
 
                 <div>
                   <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                    Typical Turnaround (Business Days)
+                    Typical Turnaround Time (Business Days)
                   </label>
                   <input
                     type="number"
@@ -297,18 +342,50 @@ export default function SignupPage() {
               </div>
             )}
 
+            {/* Address & Google Maps Location */}
             <div>
               <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                Physical / Office Address
+                Physical Street Address
               </label>
               <input
                 type="text"
-                placeholder="Street address, city, state"
+                placeholder="e.g. 450 Lexington Ave, Suite 1200, New York, NY"
                 value={form.address || ''}
                 onChange={(e) => set('address', e.target.value)}
                 className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
               />
             </div>
+
+            {/* Google Maps Exact Location Link / Coordinates */}
+            {(role === 'DENTIST' || role === 'LAB') && (
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                    📍 Google Maps Exact Location (Link or Coordinates)
+                  </label>
+                  {form.address && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(form.address)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold text-[var(--accent-light)] hover:underline flex items-center gap-1"
+                    >
+                      Find on Google Maps ↗
+                    </a>
+                  )}
+                </div>
+                <input
+                  type="url"
+                  placeholder="https://maps.google.com/?q=... or https://maps.app.goo.gl/..."
+                  value={form.mapsUrl || ''}
+                  onChange={(e) => set('mapsUrl', e.target.value)}
+                  className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)] font-mono text-xs"
+                />
+                <p className="mt-1 text-[10px] text-[var(--text-muted)]">
+                  Paste your clinic or lab Google Maps link to allow automatic courier navigation and dental partner discovery.
+                </p>
+              </div>
+            )}
 
             {error && (
               <div className="rounded-xl border border-red-500/30 bg-red-950/50 p-3.5 text-xs font-bold text-red-400">

@@ -9,13 +9,19 @@ export async function POST(req: NextRequest) {
   if (!email || !password) {
     return Response.json({ error: 'Missing credentials' }, { status: 400 });
   }
+
+  const identifier = email.trim();
   const user = await get(
-    'SELECT id, email, username, password_hash, role FROM users WHERE email = ? OR username = ?',
-    [email.toLowerCase(), email]
+    `SELECT id, email, username, phone, password_hash, role 
+     FROM users 
+     WHERE email = ? OR username = ? OR (phone != '' AND phone = ?)`,
+    [identifier.toLowerCase(), identifier, identifier]
   );
+
   if (!user || !bcrypt.compareSync(password, String(user.password_hash))) {
-    return Response.json({ error: 'Invalid email or password' }, { status: 401 });
+    return Response.json({ error: 'Invalid username, email, phone number or password' }, { status: 401 });
   }
+
   await createSession(Number(user.id));
   return Response.json({ ok: true, role: user.role });
 }

@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
-import { STATUS_LABEL } from '@/lib/constants';
 
 const STATUS_COLOR: Record<string, string> = {
   SUBMITTED: 'bg-slate-500/10 text-slate-400 border border-slate-500/20',
@@ -139,8 +138,33 @@ export default function DashboardPage() {
                     <p className="text-sm font-bold text-[var(--accent)]">{user.profile.preferredLabName || 'None Selected'}</p>
                   </div>
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
-                    <span className="text-xs text-[var(--text-muted)]">Address:</span>
-                    <p className="text-sm font-bold text-[var(--text)]">{user.profile.address || '—'}</p>
+                    <span className="text-xs text-[var(--text-muted)]">Contact Phone:</span>
+                    <p className="text-sm font-bold text-[var(--text)] font-mono">{user.user.phone || '—'}</p>
+                  </div>
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3 sm:col-span-2">
+                    <span className="text-xs text-[var(--text-muted)]">Address & Location:</span>
+                    <div className="mt-1 flex items-center justify-between">
+                      <p className="text-sm font-bold text-[var(--text)]">{user.profile.address || '—'}</p>
+                      {user.profile.maps_url ? (
+                        <a
+                          href={user.profile.maps_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold text-[var(--accent)] hover:underline flex items-center gap-1"
+                        >
+                          📍 Google Maps ↗
+                        </a>
+                      ) : user.profile.address ? (
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(user.profile.address)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold text-[var(--accent)] hover:underline flex items-center gap-1"
+                        >
+                          📍 Google Maps ↗
+                        </a>
+                      ) : null}
+                    </div>
                   </div>
                 </>
               )}
@@ -155,20 +179,51 @@ export default function DashboardPage() {
                     <p className="text-sm font-bold text-[var(--accent)]">{user.profile.turnaround_days ?? '—'} Business Days</p>
                   </div>
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
+                    <span className="text-xs text-[var(--text-muted)]">Contact Phone:</span>
+                    <p className="text-sm font-bold text-[var(--text)] font-mono">{user.user.phone || '—'}</p>
+                  </div>
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3 sm:col-span-2">
                     <span className="text-xs text-[var(--text-muted)]">Specialties:</span>
                     <p className="text-sm font-bold text-[var(--text)]">{user.profile.specialties || '—'}</p>
                   </div>
-                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3 sm:col-span-2">
-                    <span className="text-xs text-[var(--text-muted)]">Materials Supported:</span>
-                    <p className="text-sm font-bold text-[var(--text)]">{user.profile.materials || '—'}</p>
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3 sm:col-span-3">
+                    <span className="text-xs text-[var(--text-muted)]">Lab Facility Address & Location:</span>
+                    <div className="mt-1 flex items-center justify-between">
+                      <p className="text-sm font-bold text-[var(--text)]">{user.profile.address || '—'}</p>
+                      {user.profile.maps_url ? (
+                        <a
+                          href={user.profile.maps_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold text-[var(--accent)] hover:underline flex items-center gap-1"
+                        >
+                          📍 View on Google Maps ↗
+                        </a>
+                      ) : user.profile.address ? (
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(user.profile.address)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold text-[var(--accent)] hover:underline flex items-center gap-1"
+                        >
+                          📍 View on Google Maps ↗
+                        </a>
+                      ) : null}
+                    </div>
                   </div>
                 </>
               )}
               {isShipping && (
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3 sm:col-span-2">
-                  <span className="text-xs text-[var(--text-muted)]">Logistics Company:</span>
-                  <p className="text-sm font-bold text-[var(--text)]">{user.profile.company_name || '—'}</p>
-                </div>
+                <>
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
+                    <span className="text-xs text-[var(--text-muted)]">Logistics Company:</span>
+                    <p className="text-sm font-bold text-[var(--text)]">{user.profile.company_name || '—'}</p>
+                  </div>
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
+                    <span className="text-xs text-[var(--text-muted)]">Contact Phone:</span>
+                    <p className="text-sm font-bold text-[var(--text)] font-mono">{user.user.phone || '—'}</p>
+                  </div>
+                </>
               )}
             </div>
           </div>

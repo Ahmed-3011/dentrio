@@ -56,6 +56,8 @@ export default function SignupPage() {
       return;
     }
 
+    const locationInput = form.address?.trim() || '';
+
     const payload = {
       email: form.email.trim(),
       username: form.username.trim(),
@@ -68,8 +70,10 @@ export default function SignupPage() {
       companyName: form.companyName?.trim() || form.name.trim(),
       specialties: role === 'LAB' ? selectedSpecialties.join(', ') : '',
       turnaroundDays: form.turnaroundDays ? Number(form.turnaroundDays) : 3,
-      address: form.address?.trim() || '',
-      mapsUrl: form.mapsUrl?.trim() || '',
+      address: locationInput,
+      mapsUrl: locationInput.startsWith('http')
+        ? locationInput
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationInput)}`,
     };
 
     try {
@@ -94,7 +98,7 @@ export default function SignupPage() {
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-4 sm:p-6 lg:p-8 bg-[#070A10] text-[var(--text)]">
-      {/* ── Background Looping Fall Forest Video ────────────────────── */}
+      {/* ── Background Looping Fall Forest Video (Saved Offline) ──── */}
       <video
         autoPlay
         muted
@@ -274,7 +278,7 @@ export default function SignupPage() {
                   />
                 </div>
 
-                {/* Lab Specialties Checkbox Choices (Materials Removed) */}
+                {/* Lab Specialties Checkbox Choices */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
@@ -342,50 +346,38 @@ export default function SignupPage() {
               </div>
             )}
 
-            {/* Address & Google Maps Location */}
+            {/* Unified Physical Street Address & Google Maps Location */}
             <div>
-              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                Physical Street Address
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                  📍 Physical Street Address / Google Maps Location
+                </label>
+                {form.address && (
+                  <a
+                    href={
+                      form.address.startsWith('http')
+                        ? form.address
+                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(form.address)}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] font-bold text-[var(--accent-light)] hover:underline flex items-center gap-1"
+                  >
+                    Open in Google Maps ↗
+                  </a>
+                )}
+              </div>
               <input
                 type="text"
-                placeholder="e.g. 450 Lexington Ave, Suite 1200, New York, NY"
+                placeholder="e.g. 450 Lexington Ave, New York, NY or https://maps.app.goo.gl/..."
                 value={form.address || ''}
                 onChange={(e) => set('address', e.target.value)}
                 className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
               />
+              <p className="mt-1 text-[10px] text-[var(--text-muted)]">
+                Enter your street address or paste a Google Maps link for automated courier routing and partner discovery.
+              </p>
             </div>
-
-            {/* Google Maps Exact Location Link / Coordinates */}
-            {(role === 'DENTIST' || role === 'LAB') && (
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                    📍 Google Maps Exact Location (Link or Coordinates)
-                  </label>
-                  {form.address && (
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(form.address)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[10px] font-bold text-[var(--accent-light)] hover:underline flex items-center gap-1"
-                    >
-                      Find on Google Maps ↗
-                    </a>
-                  )}
-                </div>
-                <input
-                  type="url"
-                  placeholder="https://maps.google.com/?q=... or https://maps.app.goo.gl/..."
-                  value={form.mapsUrl || ''}
-                  onChange={(e) => set('mapsUrl', e.target.value)}
-                  className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)] font-mono text-xs"
-                />
-                <p className="mt-1 text-[10px] text-[var(--text-muted)]">
-                  Paste your clinic or lab Google Maps link to allow automatic courier navigation and dental partner discovery.
-                </p>
-              </div>
-            )}
 
             {error && (
               <div className="rounded-xl border border-red-500/30 bg-red-950/50 p-3.5 text-xs font-bold text-red-400">

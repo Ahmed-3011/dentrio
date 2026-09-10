@@ -45,7 +45,7 @@ export default function LoginPage() {
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-4 sm:p-6 lg:p-8 bg-[#070A10] text-[var(--text)]">
-      {/* ── Background Looping Azure Horizon Video ──────────────────── */}
+      {/* ── Background Looping Azure Horizon Video (Saved Offline) ─ */}
       <video
         autoPlay
         muted
@@ -53,10 +53,7 @@ export default function LoginPage() {
         playsInline
         className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-40 scale-105"
       >
-        <source
-          src="https://motionbgs.com/media/9760/azure-horizon.960x540.mp4"
-          type="video/mp4"
-        />
+        <source src="/videos/azure-horizon.mp4" type="video/mp4" />
       </video>
 
       {/* Dark Vignette & Mesh Overlay matching #070A10 and #123B6B */}

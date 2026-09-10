@@ -73,7 +73,7 @@ export default function SignupPage() {
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-4 sm:p-6 lg:p-8 bg-[#070A10] text-[var(--text)]">
-      {/* ── Background Looping Fall Forest Video ────────────────────── */}
+      {/* ── Background Looping Fall Forest Video (Saved Offline) ──── */}
       <video
         autoPlay
         muted
@@ -81,10 +81,7 @@ export default function SignupPage() {
         playsInline
         className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-40 scale-105"
       >
-        <source
-          src="https://motionbgs.com/media/1922/first-fall-day-in-forest.960x540.mp4"
-          type="video/mp4"
-        />
+        <source src="/videos/first-fall-forest.mp4" type="video/mp4" />
       </video>
 
       {/* Dark Vignette & Mesh Overlay matching #070A10 and #123B6B */}

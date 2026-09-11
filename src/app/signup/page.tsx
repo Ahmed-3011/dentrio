@@ -281,10 +281,10 @@ export default function SignupPage() {
                 {/* Lab Specialties Checkbox Choices */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] select-text">
                       Lab Specialties (Select All That Apply)
                     </label>
-                    <span className="text-[10px] font-mono text-[var(--accent-light)]">
+                    <span className="text-[10px] font-mono text-[var(--accent-light)] select-text">
                       {selectedSpecialties.length} Selected
                     </span>
                   </div>
@@ -293,10 +293,9 @@ export default function SignupPage() {
                     {LAB_SPECIALTY_CHOICES.map((spec) => {
                       const isChecked = selectedSpecialties.includes(spec);
                       return (
-                        <label
+                        <div
                           key={spec}
-                          onClick={() => toggleSpecialty(spec)}
-                          className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition text-xs font-semibold select-none ${
+                          className={`flex items-center gap-2.5 p-2 rounded-lg transition text-xs font-semibold select-text ${
                             isChecked
                               ? 'bg-[var(--accent-dim)] text-[var(--accent-light)] border border-[rgba(42,127,255,0.35)]'
                               : 'text-[var(--text-muted)] hover:bg-[#123B6B]/30 hover:text-white border border-transparent'
@@ -304,12 +303,18 @@ export default function SignupPage() {
                         >
                           <input
                             type="checkbox"
+                            id={`spec-${spec}`}
                             checked={isChecked}
-                            onChange={() => {}}
-                            className="h-4 w-4 rounded border-[#123B6B] bg-[#070A10] text-[var(--accent)] focus:ring-0 cursor-pointer accent-[var(--accent)]"
+                            onChange={() => toggleSpecialty(spec)}
+                            className="h-4 w-4 rounded border-[#123B6B] bg-[#070A10] text-[var(--accent)] focus:ring-0 cursor-pointer accent-[var(--accent)] shrink-0"
                           />
-                          <span>{spec}</span>
-                        </label>
+                          <label
+                            htmlFor={`spec-${spec}`}
+                            className="cursor-pointer select-text flex-1"
+                          >
+                            {spec}
+                          </label>
+                        </div>
                       );
                     })}
                   </div>

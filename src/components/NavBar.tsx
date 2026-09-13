@@ -3,11 +3,13 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from '@/components/ThemeProvider';
+import { useLanguage } from '@/components/LanguageProvider';
 
 export default function NavBar({ role, name }: { role?: string; name?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
+  const { lang, toggleLanguage, t } = useLanguage();
 
   async function logout() {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -19,26 +21,26 @@ export default function NavBar({ role, name }: { role?: string; name?: string })
 
   const LINKS = isShipping
     ? [
-        { href: '/dashboard', label: 'Overview' },
-        { href: '/shipping', label: 'Shipping Queue' },
+        { href: '/dashboard', label: t.overview },
+        { href: '/shipping', label: t.shippingQueue },
       ]
     : [
-        { href: '/dashboard', label: 'Dashboard' },
-        { href: '/cases', label: 'Cases' },
-        { href: '/labs', label: 'Lab Directory' },
+        { href: '/dashboard', label: t.dashboard },
+        { href: '/cases', label: t.cases },
+        { href: '/labs', label: t.labDirectory },
       ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--nav-bg)] backdrop-blur-xl transition-colors">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        {/* Brand Logo & Links */}
+        {/* Brand Logo & Navigation Links */}
         <div className="flex items-center gap-8">
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--dentist)] to-[var(--lab)] text-base font-bold text-[#0a0e17] shadow-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--dentist)] to-[var(--lab)] text-base font-bold text-[#070A10] shadow-sm">
               ◈
             </div>
             <span className="text-xl font-black tracking-tight text-[var(--text)]">
-              Dentrio<span className="text-[var(--accent)]">.</span>
+              {t.brand}<span className="text-[var(--accent)]">.</span>
             </span>
           </Link>
 
@@ -52,7 +54,7 @@ export default function NavBar({ role, name }: { role?: string; name?: string })
                   className={
                     'rounded-lg px-3.5 py-1.5 text-xs font-bold transition ' +
                     (active
-                      ? 'bg-[var(--accent-dim)] text-[var(--accent)] border border-[rgba(0,212,170,0.25)]'
+                      ? 'bg-[var(--accent-dim)] text-[var(--accent-light)] border border-[rgba(42,127,255,0.25)]'
                       : 'text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)]')
                   }
                 >
@@ -63,9 +65,20 @@ export default function NavBar({ role, name }: { role?: string; name?: string })
           </nav>
         </div>
 
-        {/* User Info, Theme Switcher & Logout */}
-        <div className="flex items-center gap-3">
-          {/* Robust Theme Toggle Button */}
+        {/* Language Switcher, Theme Switcher & User Profile */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* Language Toggle Button (EN / AR) */}
+          <button
+            onClick={toggleLanguage}
+            type="button"
+            title={lang === 'en' ? 'التحويل إلى العربية' : 'Switch to English'}
+            className="flex h-9 items-center gap-1.5 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-2.5 text-xs font-bold text-[var(--text)] shadow-sm transition hover:border-[var(--accent)]"
+          >
+            <span>{lang === 'en' ? '🇸🇦' : '🇺🇸'}</span>
+            <span className="font-mono">{lang === 'en' ? 'العربية' : 'EN'}</span>
+          </button>
+
+          {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
             type="button"
@@ -81,8 +94,8 @@ export default function NavBar({ role, name }: { role?: string; name?: string })
               <span className="text-xs font-semibold text-[var(--text)]">
                 {name}
               </span>
-              <span className="rounded-md border border-[var(--border)] bg-[var(--bg-elevated)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent)]">
-                {role === 'DENTIST' ? 'Dentist' : role === 'LAB' ? 'Lab' : 'Logistics'}
+              <span className="rounded-md border border-[var(--border)] bg-[var(--bg-elevated)] px-2 py-0.5 text-[10px] font-bold text-[var(--accent-light)]">
+                {role === 'DENTIST' ? t.dentistTitle : role === 'LAB' ? t.labTitle : t.shippingTitle}
               </span>
             </div>
           )}
@@ -91,7 +104,7 @@ export default function NavBar({ role, name }: { role?: string; name?: string })
             onClick={logout}
             className="rounded-lg border border-[var(--border)] bg-[var(--bg-card)] px-3 py-1.5 text-xs font-bold text-[var(--text-muted)] transition hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400"
           >
-            Sign Out
+            {t.signOut}
           </button>
         </div>
       </div>

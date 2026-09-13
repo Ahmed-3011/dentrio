@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTheme } from '@/components/ThemeProvider';
+import { useLanguage } from '@/components/LanguageProvider';
 
 const ROLE_HOME: Record<string, string> = {
   DENTIST: '/dashboard',
@@ -14,6 +15,7 @@ const ROLE_HOME: Record<string, string> = {
 export default function LoginPage() {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
+  const { lang, toggleLanguage, t } = useLanguage();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -31,14 +33,14 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Invalid username, email, phone number, or password');
+        setError(data.error || (lang === 'ar' ? 'بيانات الدخول غير صحيحة' : 'Invalid username, email, phone number, or password'));
         setBusy(false);
         return;
       }
       router.push(ROLE_HOME[data.role] || '/dashboard');
       router.refresh();
     } catch {
-      setError('Server connection error. Please try again.');
+      setError(lang === 'ar' ? 'حدث خطأ في الاتصال بالخادم' : 'Server connection error. Please try again.');
       setBusy(false);
     }
   }
@@ -56,11 +58,20 @@ export default function LoginPage() {
         <source src="/videos/azure-horizon.mp4" type="video/mp4" />
       </video>
 
-      {/* Dark Vignette & Mesh Overlay matching #070A10 and #123B6B */}
+      {/* Dark Vignette & Mesh Overlay */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#070A10]/70 via-[#070A10]/50 to-[#070A10]/85 backdrop-blur-[2px]" />
 
-      {/* Theme Toggle in Header Corner */}
-      <div className="absolute top-5 right-5 z-20">
+      {/* Language & Theme Controls in Header Corner */}
+      <div className="absolute top-5 right-5 z-20 flex items-center gap-2.5">
+        <button
+          onClick={toggleLanguage}
+          type="button"
+          className="flex h-10 items-center gap-1.5 rounded-xl border border-[rgba(42,127,255,0.25)] bg-[#0E1B2A]/80 px-3 text-xs font-bold text-[var(--text)] shadow-lg backdrop-blur-md transition hover:border-[var(--accent)]"
+        >
+          <span>{lang === 'en' ? '🇸🇦' : '🇺🇸'}</span>
+          <span className="font-mono">{lang === 'en' ? 'العربية' : 'EN'}</span>
+        </button>
+
         <button
           onClick={toggleTheme}
           type="button"
@@ -79,14 +90,14 @@ export default function LoginPage() {
               ◈
             </div>
             <span className="text-3xl font-extrabold tracking-tight text-white drop-shadow-md">
-              Dentrio<span className="text-[var(--accent)]">.</span>
+              {t.brand}<span className="text-[var(--accent)]">.</span>
             </span>
           </Link>
           <h1 className="mt-4 text-2xl font-bold tracking-tight text-white drop-shadow-sm">
-            Sign in to your account
+            {t.loginTitle}
           </h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
-            Dental clinic, lab & logistics orchestration
+            {t.loginSubtitle}
           </p>
         </div>
 
@@ -95,13 +106,13 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                Username, Email, or Phone Number
+                {t.identifierLabel}
               </label>
               <input
                 type="text"
                 autoComplete="username"
                 required
-                placeholder="e.g. user, user@email.com, or +1555..."
+                placeholder={t.identifierPlaceholder}
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
@@ -110,13 +121,13 @@ export default function LoginPage() {
 
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                Password
+                {t.passwordLabel}
               </label>
               <input
                 type="password"
                 autoComplete="current-password"
                 required
-                placeholder="••••••••"
+                placeholder={t.passwordPlaceholder}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10]/90 border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
@@ -134,16 +145,16 @@ export default function LoginPage() {
               disabled={busy}
               className="btn-accent flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-[#070A10] shadow-md disabled:opacity-50"
             >
-              {busy ? 'Authenticating…' : 'Sign In'}
+              {busy ? t.authenticating : t.signIn}
             </button>
           </form>
         </div>
 
         {/* Footer */}
         <p className="mt-6 text-center text-xs font-medium text-[var(--text-muted)]">
-          Need a clinic or lab account?{' '}
+          {t.needAccount}{' '}
           <Link href="/signup" className="font-bold text-[var(--accent-light)] hover:underline">
-            Create Profile
+            {t.createAccount}
           </Link>
         </p>
       </div>

@@ -338,23 +338,28 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ── CTA Banner ─────────────────────────────────────────── */}
-        <section className="mx-5 mb-16 overflow-hidden rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[#0E1B2A] to-[#123B6B] px-8 py-16 text-center sm:mx-8 fade-up">
-          <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent-light)] opacity-70">{t.ctaReady}</p>
-          <h2 className="mt-3 text-3xl font-black tracking-tight text-[var(--text)] sm:text-5xl">
-            {t.ctaTitle}
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base text-[var(--text-muted)]">
-            {t.ctaDesc}
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <Link href="/signup" className="btn-accent rounded-xl px-8 py-3.5 text-base">
-              {t.heroCreateBtn}
-            </Link>
-            <Link href="/login"
-              className="rounded-xl border border-[rgba(166,240,255,0.25)] px-8 py-3.5 text-base font-semibold text-[var(--accent-light)] transition hover:border-[var(--accent-light)]">
-              {t.signIn}
-            </Link>
+        {/* ── CTA Banner (Adaptive Theme: Pure White in Light Mode / #0E1B2A in Dark Mode) ── */}
+        <section className="dentrio-card relative mx-5 mb-16 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] px-8 py-16 text-center sm:mx-8 fade-up shadow-sm">
+          {/* Subtle Ambient Radial Glow */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(42,127,255,0.08)_0%,_transparent_70%)]" />
+
+          <div className="relative z-10">
+            <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)]">{t.ctaReady}</p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight text-[var(--text)] sm:text-5xl">
+              {t.ctaTitle}
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-base text-[var(--text-muted)]">
+              {t.ctaDesc}
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              <Link href="/signup" className="btn-accent rounded-xl px-8 py-3.5 text-base font-bold shadow-md">
+                {t.heroCreateBtn}
+              </Link>
+              <Link href="/login"
+                className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] px-8 py-3.5 text-base font-semibold text-[var(--text)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">
+                {t.signIn}
+              </Link>
+            </div>
           </div>
         </section>
 

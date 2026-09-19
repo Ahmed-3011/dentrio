@@ -48,3 +48,7 @@ next-env.d.ts
 # dev logs
 dev.log
 
+# stray unrelated webflow export (aardvark book site)
+/aardvark-site
+/aardvark-home.html
+

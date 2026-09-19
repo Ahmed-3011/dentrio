@@ -6,6 +6,7 @@ import { ensureCaseCodeUnique } from '@/lib/utils';
 
 export async function POST(req: NextRequest) {
   const user = await requireRole(['DENTIST']);
+  if (user instanceof Response) return user;
 
   const form = await req.formData();
   const labUserId = Number(form.get('labUserId'));
@@ -20,10 +21,11 @@ export async function POST(req: NextRequest) {
   if (!labUserId) {
     return Response.json({ error: 'A lab must be selected' }, { status: 400 });
   }
-  const lab = await get('SELECT user_id FROM labs WHERE user_id = ?', [labUserId]);
+  const lab = await get('SELECT user_id FROM labs WHERE id = ?', [labUserId]);
   if (!lab) {
     return Response.json({ error: 'Selected lab not found' }, { status: 400 });
   }
+  const labUserIdRecord = Number(lab.user_id);
   if (!scanFile || scanFile.size === 0) {
     return Response.json({ error: 'A 3D scan file is required' }, { status: 400 });
   }
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
   const insert = await run(
     `INSERT INTO cases (code, dentist_user_id, lab_user_id, status, scan_original_name, scan_path)
      VALUES (?, ?, ?, 'REVIEW', ?, ?)`,
-    [code, user.id, labUserId, scanFile.name, scanPath]
+    [code, user.id, labUserIdRecord, scanFile.name, scanPath]
   );
   const caseId = Number(insert.lastInsertRowid);
 

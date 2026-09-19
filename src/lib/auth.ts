@@ -11,6 +11,7 @@ export type Privilege = 'normal' | 'admin' | 'owner';
 export type AuthUser = {
   id: number;
   email: string;
+  phone: string;
   name: string;
   role: Role;
   privilege: Privilege;
@@ -52,7 +53,7 @@ export async function getSessionUser(): Promise<AuthUser | null> {
   const token = await getToken();
   if (!token) return null;
   const row = await get(
-    `SELECT u.id, u.email, u.name, u.role, u.privilege
+    `SELECT u.id, u.email, u.phone, u.name, u.role, u.privilege
      FROM sessions s JOIN users u ON u.id = s.user_id
      WHERE s.token = ? AND s.expires_at > datetime('now')`,
     [token]
@@ -61,32 +62,35 @@ export async function getSessionUser(): Promise<AuthUser | null> {
   return {
     id: Number(row.id),
     email: String(row.email),
+    phone: String(row.phone ?? ''),
     name: String(row.name),
     role: row.role as Role,
     privilege: (row.privilege as Privilege) || 'normal',
   };
 }
 
-export async function requireUser(): Promise<AuthUser> {
+export async function requireUser(): Promise<AuthUser | Response> {
   const user = await getSessionUser();
   if (!user) {
-    throw new Response('Unauthorized', { status: 401 });
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
   return user;
 }
 
-export async function requireRole(roles: Role[]): Promise<AuthUser> {
+export async function requireRole(roles: Role[]): Promise<AuthUser | Response> {
   const user = await requireUser();
+  if (user instanceof Response) return user;
   if (!roles.includes(user.role)) {
-    throw new Response('Forbidden', { status: 403 });
+    return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
   return user;
 }
 
-export async function requirePrivilege(levels: Privilege[]): Promise<AuthUser> {
+export async function requirePrivilege(levels: Privilege[]): Promise<AuthUser | Response> {
   const user = await requireUser();
+  if (user instanceof Response) return user;
   if (!levels.includes(user.privilege)) {
-    throw new Response('Forbidden', { status: 403 });
+    return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
   return user;
 }

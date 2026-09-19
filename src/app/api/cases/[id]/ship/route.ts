@@ -7,6 +7,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await requireRole(['SHIPPING']);
+  if (user instanceof Response) return user;
   const { id } = await params;
   const caseId = Number(id);
 

@@ -14,6 +14,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await requireRole(['LAB']);
+  if (user instanceof Response) return user;
   const { id } = await params;
   const caseId = Number(id);
 
@@ -29,7 +30,12 @@ export async function POST(
   }
 
   let designPath: string | null = null;
-  const form = await req.formData();
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch {
+    form = new FormData();
+  }
   const designFile = form.get('design') as File | null;
   const action = String(form.get('action') || '');
 

@@ -17,6 +17,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await requireUser();
+  if (user instanceof Response) return user;
   const { id } = await params;
   const caseId = Number(id);
 
@@ -51,6 +52,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await requireUser();
+  if (user instanceof Response) return user;
   const { id } = await params;
   const caseId = Number(id);
 
@@ -58,7 +60,12 @@ export async function POST(
     return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const form = await req.formData();
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch {
+    form = new FormData();
+  }
   const body = String(form.get('body') || '');
   const file = form.get('file') as File | null;
 

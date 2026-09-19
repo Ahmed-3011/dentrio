@@ -1,11 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import NavBar from '@/components/NavBar';
 import Viewer3D from '@/components/Viewer3D';
 import Chat from '@/components/Chat';
 import { STATUS_LABEL, PIPELINE } from '@/lib/constants';
+import type { ApiMe, CaseDetail } from '@/lib/types';
 
 const STEP_INDEX: Record<string, number> = Object.fromEntries(PIPELINE.map((s, i) => [s, i]));
 
@@ -21,9 +22,8 @@ const STATUS_COLOR: Record<string, string> = {
 
 export default function CaseDetailPage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [data, setData] = useState<any>(null);
+  const [user, setUser] = useState<ApiMe | null>(null);
+  const [data, setData] = useState<CaseDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [designFile, setDesignFile] = useState<File | null>(null);
   const [tracking, setTracking] = useState('');
@@ -41,16 +41,13 @@ export default function CaseDetailPage() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const me = await fetch('/api/auth/me');
-      if (me.ok && alive) setUser(await me.json());
-      const res = await fetch(`/api/cases/${params.id}`);
-      if (res.ok && alive) setData(await res.json());
-      if (alive) setLoading(false);
+      await load();
+      if (!alive) return;
     })();
     return () => {
       alive = false;
     };
-  }, [params.id]);
+  }, [load]);
 
   if (loading) {
     return (
@@ -72,6 +69,7 @@ export default function CaseDetailPage() {
   const role = data.myRole;
   const isShipping = role === 'SHIPPING';
   const isLab = role === 'LAB';
+  const caseId = data.id;
 
   async function advance(action?: string) {
     setBusy(true);
@@ -79,7 +77,7 @@ export default function CaseDetailPage() {
     const fd = new FormData();
     if (designFile) fd.set('design', designFile);
     if (action) fd.set('action', action);
-    const res = await fetch(`/api/cases/${data.id}/status`, { method: 'POST', body: fd });
+    const res = await fetch(`/api/cases/${caseId}/status`, { method: 'POST', body: fd });
     const result = await res.json();
     if (!res.ok) {
       setError(result.error || 'Failed to update case stage');
@@ -94,7 +92,7 @@ export default function CaseDetailPage() {
   async function startShipment() {
     setBusy(true);
     setError('');
-    const res = await fetch(`/api/cases/${data.id}/ship`, {
+    const res = await fetch(`/api/cases/${caseId}/ship`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ trackingNumber: tracking }),
@@ -113,7 +111,7 @@ export default function CaseDetailPage() {
   async function advanceShip() {
     setBusy(true);
     setError('');
-    const res = await fetch(`/api/cases/${data.id}/shipstatus`, { method: 'POST' });
+    const res = await fetch(`/api/cases/${caseId}/shipstatus`, { method: 'POST' });
     const result = await res.json();
     if (!res.ok) {
       setError(result.error || 'Failed to update tracking');

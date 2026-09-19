@@ -4,6 +4,7 @@ import { STATUS_LABEL } from '@/lib/constants';
 
 export async function GET() {
   const user = await requireUser();
+  if (user instanceof Response) return user;
 
   let rows: Record<string, unknown>[] = [];
   if (user.role === 'DENTIST') {

@@ -40,6 +40,7 @@ export async function GET(
   { params }: { params: Promise<{ path: string[] }> }
 ) {
   const user = await requireUser();
+  if (user instanceof Response) return user;
   const { path: p } = await params;
   const relative = p.join('/');
 

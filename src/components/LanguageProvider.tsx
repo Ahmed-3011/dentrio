@@ -484,18 +484,6 @@ const LanguageContext = createContext<LanguageContextType>({
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Language>('en');
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('dentrio_lang') as Language | null;
-      if (saved === 'ar' || saved === 'en') {
-        setLangState(saved);
-        updateHtmlAttributes(saved);
-      }
-    } catch {
-      // Local storage unavailable
-    }
-  }, []);
-
   const updateHtmlAttributes = (l: Language) => {
     const root = document.documentElement;
     root.lang = l;
@@ -506,6 +494,20 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       root.classList.remove('rtl-active');
     }
   };
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('dentrio_lang') as Language | null;
+      if (saved === 'ar' || saved === 'en') {
+        // One-time localStorage hydration after first paint (runs only on mount).
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLangState(saved);
+        updateHtmlAttributes(saved);
+      }
+    } catch {
+      // Local storage unavailable
+    }
+  }, []);
 
   const setLanguage = (newLang: Language) => {
     setLangState(newLang);

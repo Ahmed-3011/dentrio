@@ -19,6 +19,7 @@ export default function Chat({ caseId }: { caseId: number }) {
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const prevCount = useRef(0);
 
   const load = useCallback(async () => {
     try {
@@ -30,13 +31,18 @@ export default function Chat({ caseId }: { caseId: number }) {
   }, [caseId]);
 
   useEffect(() => {
-    load();
+    (async () => {
+      await load();
+    })();
     const t = setInterval(load, 5000);
     return () => clearInterval(t);
   }, [load]);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > prevCount.current) {
+      endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    prevCount.current = messages.length;
   }, [messages]);
 
   async function send(e: React.FormEvent) {

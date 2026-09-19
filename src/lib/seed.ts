@@ -1,8 +1,7 @@
-/* eslint-disable no-console */
 import fs from 'node:fs';
 import path from 'node:path';
 import bcrypt from 'bcryptjs';
-import { all, run, get } from './db';
+import { run, get } from './db';
 
 function loadEnv() {
   const cwd = process.cwd();

@@ -7,6 +7,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await requireRole(['DENTIST']);
+  if (user instanceof Response) return user;
   const { id } = await params;
   const labId = Number(id);
 

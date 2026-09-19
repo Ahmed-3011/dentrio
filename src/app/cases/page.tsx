@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
+import type { AnyCase, ApiMe } from '@/lib/types';
 
 const STATUS_COLOR: Record<string, string> = {
   SUBMITTED: 'bg-slate-500/10 text-slate-400 border border-slate-500/20',
@@ -14,19 +15,8 @@ const STATUS_COLOR: Record<string, string> = {
   CLOSED: 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20',
 };
 
-type AnyCase = {
-  id: number;
-  code: string;
-  status: string;
-  statusLabel: string;
-  createdAt: string;
-  updatedAt: string;
-  counterpart: string | null;
-  scanOriginalName: string | null;
-};
-
 export default function CasesPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<ApiMe | null>(null);
   const [cases, setCases] = useState<AnyCase[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -110,7 +100,7 @@ export default function CasesPage() {
                         </span>
                       </td>
                       <td className="px-5 py-4 text-xs font-medium text-[var(--text-muted)]">
-                        {new Date(c.updatedAt + 'Z').toLocaleDateString()}
+                        {new Date((c.updatedAt || c.createdAt) + 'Z').toLocaleDateString()}
                       </td>
                     </tr>
                   ))}

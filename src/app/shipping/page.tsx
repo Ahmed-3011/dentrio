@@ -3,20 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
-
-type AnyCase = {
-  id: number;
-  code: string;
-  status: string;
-  statusLabel: string;
-  createdAt: string;
-  counterpart: string | null;
-};
+import type { AnyCase, ApiMe } from '@/lib/types';
 
 export default function ShippingPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<ApiMe | null>(null);
   const [cases, setCases] = useState<AnyCase[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -26,7 +17,6 @@ export default function ShippingPage() {
       ]);
       if (meRes.ok) setUser(await meRes.json());
       if (casesRes.ok) setCases(await casesRes.json());
-      setLoading(false);
     })();
   }, []);
 

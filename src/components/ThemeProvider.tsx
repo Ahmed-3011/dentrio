@@ -17,17 +17,6 @@ const ThemeContext = createContext<ThemeContextType>({
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark');
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('dentrio_theme') as Theme | null;
-      const initialTheme = saved === 'light' || saved === 'dark' ? saved : 'dark';
-      setTheme(initialTheme);
-      applyTheme(initialTheme);
-    } catch {
-      // LocalStorage unavailable (e.g. private browsing or sandbox)
-    }
-  }, []);
-
   const applyTheme = (t: Theme) => {
     const root = document.documentElement;
     if (t === 'dark') {
@@ -38,6 +27,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.classList.remove('dark');
     }
   };
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('dentrio_theme') as Theme | null;
+      const initialTheme = saved === 'light' || saved === 'dark' ? saved : 'dark';
+      // One-time localStorage hydration after first paint (runs only on mount).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTheme(initialTheme);
+      applyTheme(initialTheme);
+    } catch {
+      // LocalStorage unavailable (e.g. private browsing or sandbox)
+    }
+  }, []);
 
   const toggleTheme = () => {
     const nextTheme: Theme = theme === 'dark' ? 'light' : 'dark';

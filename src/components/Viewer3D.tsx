@@ -85,9 +85,9 @@ export default function Viewer3D({ url }: { url: string }) {
 
         if (cancelled) return;
         setLoading(false);
-      } catch (e: any) {
+      } catch (e) {
         if (cancelled) return;
-        setError(e?.message || 'Could not load model');
+        setError(e instanceof Error ? e.message : 'Could not load model');
         setLoading(false);
       }
     })();

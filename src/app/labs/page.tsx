@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import NavBar from '@/components/NavBar';
+import type { ApiMe } from '@/lib/types';
 
 type Lab = {
   id: number;
@@ -17,7 +18,7 @@ type Lab = {
 };
 
 export default function LabsPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<ApiMe | null>(null);
   const [labs, setLabs] = useState<Lab[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);

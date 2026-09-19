@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/auth';
 
 export async function GET() {
   const user = await requireUser();
+  if (user instanceof Response) return user;
   let profile: Record<string, unknown> | null = null;
 
   if (user.role === 'DENTIST') {

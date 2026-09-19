@@ -15,6 +15,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await requireUser();
+  if (user instanceof Response) return user;
   const { id } = await params;
   const caseId = Number(id);
 

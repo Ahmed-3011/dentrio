@@ -1,4 +1,4 @@
-import { run, get } from './db';
+import { get } from './db';
 
 export function generateCaseCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

@@ -21,11 +21,16 @@ export default function HomePage() {
           }
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.05 }
     );
-    els.forEach((el) => obs.observe(el));
+    els.forEach((el) => {
+      if (el.getBoundingClientRect().top < window.innerHeight) {
+        el.classList.add('visible');
+      }
+      obs.observe(el);
+    });
     return () => obs.disconnect();
-  }, []);
+  }, [lang]);
 
   const ROLES = [
     {
@@ -55,10 +60,10 @@ export default function HomePage() {
   ];
 
   const HOW_STEPS = [
-    { num: lang === 'ar' ? 'الخطوة ١' : 'Step 1', title: t.step1Title, desc: t.step1Desc },
-    { num: lang === 'ar' ? 'الخطوة ٢' : 'Step 2', title: t.step2Title, desc: t.step2Desc },
-    { num: lang === 'ar' ? 'الخطوة ٣' : 'Step 3', title: t.step3Title, desc: t.step3Desc },
-    { num: lang === 'ar' ? 'الخطوة ٤' : 'Step 4', title: t.step4Title, desc: t.step4Desc },
+    { num: lang === 'ar' ? 'الخطوة 1' : 'Step 1', title: t.step1Title, desc: t.step1Desc },
+    { num: lang === 'ar' ? 'الخطوة 2' : 'Step 2', title: t.step2Title, desc: t.step2Desc },
+    { num: lang === 'ar' ? 'الخطوة 3' : 'Step 3', title: t.step3Title, desc: t.step3Desc },
+    { num: lang === 'ar' ? 'الخطوة 4' : 'Step 4', title: t.step4Title, desc: t.step4Desc },
   ];
 
   const FEATURES = [
@@ -223,7 +228,6 @@ export default function HomePage() {
                 src="https://lottie.host/embed/d7ef5f9c-658b-4685-9c04-c04d93aa0bdf/XGuvK53YBG.json"
                 className="h-full w-full border-0 pointer-events-none scale-125"
                 title="Dental Orbit Animation"
-                allowTransparency
               />
             </div>
 
@@ -252,7 +256,7 @@ export default function HomePage() {
 
         {/* ── Roles ──────────────────────────────────────────────── */}
         <section id="roles" className="mx-auto max-w-7xl px-5 py-24 sm:px-8">
-          <div className="text-center fade-up">
+          <div className="text-center">
             <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)]">{t.rolesSubtitle}</p>
             <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-5xl">
               {t.rolesTitle}
@@ -264,8 +268,8 @@ export default function HomePage() {
 
           <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
             {ROLES.map((r, i) => (
-              <div key={r.title}
-                className={`dentrio-card relative overflow-hidden rounded-2xl p-7 transition hover:-translate-y-2 fade-up fade-up-delay-${i + 1}`}>
+              <div key={i}
+                className="dentrio-card relative overflow-hidden rounded-2xl p-7 transition hover:-translate-y-2">
                 <div className="absolute inset-x-0 top-0 h-1" style={{ background: r.color }} />
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl text-3xl"
                   style={{ background: `rgba(${r.colorRgb}, 0.12)` }}>
@@ -274,8 +278,8 @@ export default function HomePage() {
                 <h3 className="mt-5 text-xl font-bold" style={{ color: r.color }}>{r.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">{r.desc}</p>
                 <ul className="mt-5 space-y-2">
-                  {r.perks.map((p) => (
-                    <li key={p} className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
+                  {r.perks.map((p, pIdx) => (
+                    <li key={pIdx} className="flex items-center gap-2 text-xs font-medium text-[var(--text-muted)]">
                       <span className="font-bold" style={{ color: r.color }}>✓</span> {p}
                     </li>
                   ))}
@@ -288,7 +292,7 @@ export default function HomePage() {
         {/* ── How it works ───────────────────────────────────────── */}
         <section id="how" className="border-y border-[var(--border)] bg-[var(--bg-card)] py-24">
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
-            <div className="text-center fade-up">
+            <div className="text-center">
               <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)]">{t.processSubtitle}</p>
               <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-5xl">
                 {t.processTitle}
@@ -300,7 +304,7 @@ export default function HomePage() {
 
             <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {HOW_STEPS.map((s, i) => (
-                <div key={s.num} className={`dentrio-card rounded-2xl p-6 fade-up fade-up-delay-${i + 1}`}>
+                <div key={i} className="dentrio-card rounded-2xl p-6">
                   <span className="inline-block rounded-lg bg-[var(--accent-dim)] px-3 py-1 text-xs font-bold text-[var(--accent-light)]">
                     {s.num}
                   </span>
@@ -314,7 +318,7 @@ export default function HomePage() {
 
         {/* ── Features ───────────────────────────────────────────── */}
         <section id="features" className="mx-auto max-w-7xl px-5 py-24 sm:px-8">
-          <div className="text-center fade-up">
+          <div className="text-center">
             <p className="text-xs font-bold uppercase tracking-widest text-[var(--accent)]">{t.featuresSubtitle}</p>
             <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-5xl">
               {t.featuresTitle}
@@ -326,8 +330,8 @@ export default function HomePage() {
 
           <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f, i) => (
-              <div key={f.num}
-                className={`dentrio-card group rounded-2xl p-7 transition hover:-translate-y-1 hover:border-[var(--accent)] fade-up fade-up-delay-${(i % 3) + 1}`}>
+              <div key={i}
+                className="dentrio-card group rounded-2xl p-7 transition hover:-translate-y-1 hover:border-[var(--accent)]">
                 <span className="font-mono text-4xl font-black text-[var(--accent)] opacity-30 transition group-hover:opacity-60">
                   {f.num}
                 </span>
@@ -339,7 +343,7 @@ export default function HomePage() {
         </section>
 
         {/* ── CTA Banner (Adaptive Theme: Pure White in Light Mode / #0E1B2A in Dark Mode) ── */}
-        <section className="dentrio-card relative mx-5 mb-16 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] px-8 py-16 text-center sm:mx-8 fade-up shadow-sm">
+        <section className="dentrio-card relative mx-5 mb-16 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] px-8 py-16 text-center sm:mx-8 shadow-sm">
           {/* Subtle Ambient Radial Glow */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(42,127,255,0.08)_0%,_transparent_70%)]" />
 

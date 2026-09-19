@@ -9,6 +9,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const actor = await requirePrivilege(['admin', 'owner']);
+  if (actor instanceof Response) return actor;
   const { id } = await params;
   const targetId = Number(id);
 

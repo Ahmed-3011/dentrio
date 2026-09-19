@@ -2,7 +2,6 @@ import { createClient } from '@libsql/client';
 import type { Client, InArgs } from '@libsql/client';
 
 declare global {
-  // eslint-disable-next-line no-var
   var __triadDb: Client | undefined;
 }
 

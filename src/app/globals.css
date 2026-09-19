@@ -32,12 +32,12 @@
 }
 
 html.light {
-  --bg: #f0f6ff;
+  --bg: #f4f8fc;
   --bg-card: #ffffff;
-  --bg-elevated: #ddeeff;
+  --bg-elevated: #e8f2fc;
   --text: #070A10;
-  --text-muted: #2a5080;
-  --border: rgba(42, 127, 255, 0.22);
+  --text-muted: #3a5c7c;
+  --border: #d4e4f4;
   --border-focus: #2A7FFF;
 
   --accent: #2A7FFF;
@@ -50,11 +50,11 @@ html.light {
   --ship: #1a5cbf;
 
   --input-bg: #ffffff;
-  --input-border: #b0ccee;
+  --input-border: #c8dcf0;
   --input-text: #070A10;
-  --input-placeholder: #5a85aa;
+  --input-placeholder: #688aa8;
 
-  --nav-bg: rgba(240, 246, 255, 0.92);
+  --nav-bg: rgba(244, 248, 252, 0.94);
 }
 
 @theme inline {
@@ -94,6 +94,10 @@ body {
   overflow: hidden;
   contain: strict;
   transform: translate3d(0, 0, 0);
+}
+
+html.light .blob-bg {
+  opacity: 0.35;
 }
 
 .blob {
@@ -157,20 +161,43 @@ body {
   pointer-events: none;
 }
 
-/* ─── Card components ───────────────────────────────────────── */
+html.light .grid-overlay {
+  background-image:
+    linear-gradient(rgba(42, 127, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(42, 127, 255, 0.05) 1px, transparent 1px);
+}
+
+/* ─── Card components with Elevated Hover Experience ──────── */
 .dentrio-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border);
+  background-color: var(--bg-card) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
   box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.35);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform, box-shadow;
 }
 
 .dentrio-card:hover {
-  border-color: rgba(42, 127, 255, 0.35);
+  transform: translateY(-6px) scale(1.012) !important;
+  border-color: rgba(42, 127, 255, 0.55) !important;
+  box-shadow: 0 20px 40px -10px rgba(42, 127, 255, 0.28), 
+              0 0 25px rgba(42, 127, 255, 0.12) !important;
 }
 
 html.light .dentrio-card {
-  box-shadow: 0 4px 20px -2px rgba(42, 127, 255, 0.08);
+  background-color: #ffffff !important;
+  color: #070A10 !important;
+  border-color: #d4e4f4 !important;
+  box-shadow: 0 4px 20px -2px rgba(42, 127, 255, 0.08) !important;
+}
+
+html.light .dentrio-card:hover {
+  transform: translateY(-6px) scale(1.012) !important;
+  border-color: #2A7FFF !important;
+  box-shadow: 0 16px 36px -4px rgba(42, 127, 255, 0.20),
+              0 0 0 1px rgba(42, 127, 255, 0.2) !important;
 }
 
 /* ─── Inputs ────────────────────────────────────────────────── */
@@ -179,7 +206,7 @@ html.light .dentrio-card {
   border: 1px solid var(--input-border);
   color: var(--input-text);
   font-weight: 500;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .dentrio-input::placeholder {
@@ -190,35 +217,50 @@ html.light .dentrio-card {
 .dentrio-input:focus {
   border-color: var(--border-focus);
   outline: none;
-  box-shadow: 0 0 0 3px var(--accent-dim);
+  box-shadow: 0 0 0 3px var(--accent-dim), 0 6px 18px rgba(42, 127, 255, 0.15);
 }
 
-/* ─── Accent Button ─────────────────────────────────────────── */
+/* ─── Accent Button with Dynamic Shimmer & Glow ─────────────── */
 .btn-accent {
-  background: linear-gradient(135deg, #2A7FFF, #1a5be8);
+  background: linear-gradient(135deg, #2A7FFF 0%, #1754c5 100%);
   color: #ffffff;
   font-weight: 700;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 4px 18px rgba(42, 127, 255, 0.4);
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+              filter 0.22s ease;
+  box-shadow: 0 4px 18px rgba(42, 127, 255, 0.35);
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-accent:hover {
-  transform: translate3d(0, -2px, 0);
-  box-shadow: 0 8px 26px rgba(42, 127, 255, 0.55);
+  transform: translateY(-3px) scale(1.025);
+  box-shadow: 0 10px 30px rgba(42, 127, 255, 0.65), 0 0 20px rgba(166, 240, 255, 0.35);
+  filter: brightness(1.08);
 }
 
-/* ─── Smooth 60fps Scroll Reveal Animation ──────────────────── */
+.btn-accent:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ─── Scroll Reveal Animation ──────────────────── */
 .fade-up {
   opacity: 0;
-  transform: translate3d(0, 24px, 0);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
-  backface-visibility: hidden;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
 .fade-up.visible {
   opacity: 1;
-  transform: translate3d(0, 0, 0);
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 .fade-up-delay-1 { transition-delay: 0.08s; }
@@ -302,25 +344,4 @@ html.light .dentrio-card {
   height: 1px;
   background: linear-gradient(90deg, transparent, #2A7FFF, #A6F0FF, transparent);
   opacity: 0.45;
-}
-
-/* ─── Hardware-Accelerated Floating Molar Animation ─────────── */
-.artistic-tooth {
-  animation: toothBreathingFloat 5s ease-in-out infinite;
-  transform-origin: center center;
-  will-change: transform;
-  backface-visibility: hidden;
-  transform: translate3d(0, 0, 0);
-}
-
-@keyframes toothBreathingFloat {
-  0% {
-    transform: translate3d(0, 0px, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(0, -6px, 0) scale(1.03);
-  }
-  100% {
-    transform: translate3d(0, 0px, 0) scale(1);
-  }
 }

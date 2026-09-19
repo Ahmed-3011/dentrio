@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   const user = await requireUser();
+  if (user instanceof Response) return user;
   const search = req.nextUrl.searchParams.get('q')?.trim().toLowerCase() || '';
 
   let rows: Record<string, unknown>[];
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
     preferredId = pref?.preferred_lab_id;
   }
 
-  const result = rows.map((r: any) => ({
+  const result = rows.map((r) => ({
     id: Number(r.id),
     labName: r.lab_name,
     description: r.description,

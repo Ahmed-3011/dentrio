@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import NavBar from '@/components/NavBar';
+import type { ApiMe } from '@/lib/types';
 
 type Lab = {
   id: number;
@@ -17,7 +18,7 @@ type Lab = {
 
 export default function NewCasePage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<ApiMe | null>(null);
   const [labs, setLabs] = useState<Lab[]>([]);
   const [search, setSearch] = useState('');
   const [selectedLab, setSelectedLab] = useState<number | null>(null);

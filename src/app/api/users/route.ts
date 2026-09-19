@@ -4,6 +4,7 @@ import { requirePrivilege } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   const user = await requirePrivilege(['admin', 'owner']);
+  if (user instanceof Response) return user;
 
   const role = req.nextUrl.searchParams.get('role');
   let rows: Record<string, unknown>[];

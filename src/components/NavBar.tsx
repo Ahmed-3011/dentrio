@@ -27,6 +27,7 @@ export default function NavBar({ role, name }: { role?: string; name?: string })
     : [
         { href: '/dashboard', label: t.dashboard },
         { href: '/cases', label: t.cases },
+        { href: '/milling', label: t.millingQueue },
         { href: '/labs', label: t.labDirectory },
       ];
 

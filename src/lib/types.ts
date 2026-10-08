@@ -32,6 +32,7 @@ export type ApiProfile = {
 export type ApiMe = {
   user: ApiUser;
   profile: ApiProfile;
+  needsOnboarding?: boolean;
   caseCount: number;
   activeCount: number;
 };
@@ -41,11 +42,35 @@ export type CaseDetail = {
   code: string;
   status: string;
   statusLabel: string;
+  createdAt: string;
+  updatedAt?: string;
   myRole: 'DENTIST' | 'LAB' | 'SHIPPING';
   labName?: string | null;
+  labUserId?: number;
   dentistName?: string | null;
+  dentistUserId?: number;
   scan: { path: string; name: string } | null;
+  scans?: Array<{ id: number; path: string; name: string; type: string }>;
   design: { path: string } | null;
+  cadProposal: {
+    path: string;
+    name: string;
+    isHtml: boolean;
+    isStl: boolean;
+    approvedAt: string | null;
+    approvedBy: number | null;
+    revisionNotes: string | null;
+  } | null;
+  millingPackage: {
+    stlPath: string;
+    stlName: string;
+    stls?: Array<{ id: number; path: string; name: string }>;
+    constructionPath: string | null;
+    constructionName: string | null;
+    constructions?: Array<{ id: number; path: string; name: string }>;
+    notes: string | null;
+    createdAt: string | null;
+  } | null;
   prescription?: {
     restorationType: string | null;
     toothNumber: string | null;
@@ -58,7 +83,11 @@ export type CaseDetail = {
   deliveryAddress?: string | null;
   trackingNumber?: string | null;
   shipStatus?: string | null;
+  isCadApproved?: boolean;
   canAdvance?: boolean;
   canMarkReady?: boolean;
   canShip?: boolean;
+  canApproveCad?: boolean;
+  canUploadCadProposal?: boolean;
+  canUploadMillingOrder?: boolean;
 };

@@ -23,9 +23,20 @@ async function canAccess(
     }
   }
 
+  const caseFileRow = await get('SELECT case_id FROM case_files WHERE file_path = ?', [fileName]);
+  if (caseFileRow) {
+    const c = await get('SELECT dentist_user_id, lab_user_id FROM cases WHERE id = ?', [caseFileRow.case_id]);
+    if (c) {
+      if (role === 'DENTIST') return Number(c.dentist_user_id) === userId;
+      if (role === 'LAB') return Number(c.lab_user_id) === userId;
+    }
+  }
+
   const caseRow = await get(
-    'SELECT id, dentist_user_id, lab_user_id FROM cases WHERE scan_path = ? OR design_path = ?',
-    [fileName, fileName]
+    `SELECT id, dentist_user_id, lab_user_id 
+     FROM cases 
+     WHERE scan_path = ? OR design_path = ? OR cad_proposal_path = ? OR milling_stl_path = ? OR milling_construction_path = ?`,
+    [fileName, fileName, fileName, fileName, fileName]
   );
   if (caseRow) {
     if (role === 'DENTIST') return Number(caseRow.dentist_user_id) === userId;
@@ -58,17 +69,27 @@ export async function GET(
 
   const ext = path.extname(abs).toLowerCase();
   const mime =
-    ext === '.stl' ? 'model/stl'
+    ext === '.html' || ext === '.htm' ? 'text/html; charset=utf-8'
+    : ext === '.stl' ? 'model/stl'
     : ext === '.ply' ? 'application/octet-stream'
     : ext === '.png' ? 'image/png'
     : ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg'
     : ext === '.gif' ? 'image/gif'
     : ext === '.webp' ? 'image/webp'
+    : ext === '.webm' ? 'audio/webm'
+    : ext === '.mp3' ? 'audio/mpeg'
+    : ext === '.wav' ? 'audio/wav'
+    : ext === '.xml' ? 'application/xml; charset=utf-8'
     : 'application/octet-stream';
 
   const data = fs.readFileSync(abs);
   return new Response(new Uint8Array(data), {
-    status: 200,
-    headers: { 'Content-Type': mime, 'Content-Length': String(data.length) },
+    headers: {
+      'Content-Type': mime,
+      'Content-Disposition':
+        ext === '.html' || ext === '.htm' || ext.startsWith('.image') || ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webm'
+          ? 'inline'
+          : `attachment; filename="${path.basename(abs)}"`,
+    },
   });
 }

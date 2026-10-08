@@ -34,6 +34,10 @@ async function initSchema(): Promise<void> {
         name TEXT NOT NULL,
         role TEXT NOT NULL CHECK (role IN ('DENTIST','LAB','SHIPPING')),
         privilege TEXT NOT NULL DEFAULT 'normal' CHECK (privilege IN ('normal','admin','owner')),
+        email_verified INTEGER NOT NULL DEFAULT 1,
+        verification_token TEXT,
+        verification_code TEXT,
+        verification_expires_at TEXT,
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
       )`,
       `CREATE TABLE IF NOT EXISTS dentists (
@@ -114,19 +118,66 @@ async function initSchema(): Promise<void> {
         completed_at TEXT,
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
       )`,
+      `CREATE TABLE IF NOT EXISTS case_files (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        case_id INTEGER NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+        file_path TEXT NOT NULL,
+        file_name TEXT NOT NULL,
+        file_type TEXT NOT NULL DEFAULT 'scan',
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )`,
+      `CREATE TABLE IF NOT EXISTS milling_tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        case_id INTEGER NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+        task_key TEXT NOT NULL,
+        completed INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        UNIQUE(case_id, task_key)
+      )`,
     ],
     'write'
   );
 
   // Safe non-blocking migrations for existing databases
   const safeMigrations = [
+    `CREATE TABLE IF NOT EXISTS case_files (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      case_id INTEGER NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+      file_path TEXT NOT NULL,
+      file_name TEXT NOT NULL,
+      file_type TEXT NOT NULL DEFAULT 'scan',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`,
+    `CREATE TABLE IF NOT EXISTS milling_tasks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      case_id INTEGER NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+      task_key TEXT NOT NULL,
+      completed INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(case_id, task_key)
+    )`,
     'ALTER TABLE users ADD COLUMN phone TEXT DEFAULT ""',
+    'ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 1',
+    'ALTER TABLE users ADD COLUMN verification_token TEXT',
+    'ALTER TABLE users ADD COLUMN verification_code TEXT',
+    'ALTER TABLE users ADD COLUMN verification_expires_at TEXT',
     'ALTER TABLE dentists ADD COLUMN maps_url TEXT',
     'ALTER TABLE dentists ADD COLUMN latitude REAL',
     'ALTER TABLE dentists ADD COLUMN longitude REAL',
     'ALTER TABLE labs ADD COLUMN maps_url TEXT',
     'ALTER TABLE labs ADD COLUMN latitude REAL',
     'ALTER TABLE labs ADD COLUMN longitude REAL',
+    'ALTER TABLE cases ADD COLUMN cad_proposal_path TEXT',
+    'ALTER TABLE cases ADD COLUMN cad_proposal_name TEXT',
+    'ALTER TABLE cases ADD COLUMN cad_approved_at TEXT',
+    'ALTER TABLE cases ADD COLUMN cad_approved_by INTEGER',
+    'ALTER TABLE cases ADD COLUMN cad_revision_notes TEXT',
+    'ALTER TABLE cases ADD COLUMN milling_stl_path TEXT',
+    'ALTER TABLE cases ADD COLUMN milling_stl_name TEXT',
+    'ALTER TABLE cases ADD COLUMN milling_construction_path TEXT',
+    'ALTER TABLE cases ADD COLUMN milling_construction_name TEXT',
+    'ALTER TABLE cases ADD COLUMN milling_notes TEXT',
+    'ALTER TABLE cases ADD COLUMN milling_created_at TEXT',
   ];
 
   for (const m of safeMigrations) {

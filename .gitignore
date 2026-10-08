@@ -52,3 +52,6 @@ dev.log
 /aardvark-site
 /aardvark-home.html
 
+# sensitive recovery codes / secrets — never commit
+/recovery-codes.txt
+

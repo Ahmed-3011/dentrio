@@ -18,7 +18,10 @@ export async function POST(
   const { id } = await params;
   const caseId = Number(id);
 
-  const caseRow = await get('SELECT id, lab_user_id, status FROM cases WHERE id = ?', [caseId]);
+  const caseRow = await get(
+    'SELECT id, lab_user_id, status, cad_approved_at FROM cases WHERE id = ?',
+    [caseId]
+  );
   if (!caseRow) return Response.json({ error: 'Case not found' }, { status: 404 });
   if (Number(caseRow.lab_user_id) !== user.id)
     return Response.json({ error: 'Forbidden' }, { status: 403 });
@@ -27,6 +30,14 @@ export async function POST(
   const next = NEXT_STATUS[current];
   if (!next) {
     return Response.json({ error: 'Case cannot be advanced from this stage' }, { status: 400 });
+  }
+
+  // Doctor CAD Approval Gate: Cannot start production/milling without doctor approval
+  if (next === 'PRODUCTION' && !caseRow.cad_approved_at) {
+    return Response.json(
+      { error: 'Cannot advance to Milling & Production: The CAD design must be approved by the doctor first.' },
+      { status: 400 }
+    );
   }
 
   let designPath: string | null = null;
@@ -59,14 +70,6 @@ export async function POST(
       next,
       caseId,
     ]);
-  }
-
-  if (designPath) {
-    await run(
-      `INSERT INTO messages (case_id, sender_user_id, body, file_path, file_name, is_image)
-       VALUES (?, ?, ?, ?, ?, 0)`,
-      [caseId, user.id, 'Lab uploaded a design file.', designPath, designFile!.name]
-    );
   }
 
   return Response.json({ ok: true, status: action === 'mark-ready' ? 'READY' : next });

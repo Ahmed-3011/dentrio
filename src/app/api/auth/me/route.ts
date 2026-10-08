@@ -5,13 +5,16 @@ export async function GET() {
   const user = await requireUser();
   if (user instanceof Response) return user;
   let profile: Record<string, unknown> | null = null;
+  let needsOnboarding = false;
 
   if (user.role === 'DENTIST') {
     profile = (await get(
       'SELECT clinic_name, specialty, address, preferred_lab_id FROM dentists WHERE user_id = ?',
       [user.id]
     )) ?? null;
-    if (profile && profile.preferred_lab_id != null) {
+    if (!profile || !profile.clinic_name) {
+      needsOnboarding = true;
+    } else if (profile.preferred_lab_id != null) {
       const lab = await get('SELECT lab_name FROM labs WHERE id = ?', [profile.preferred_lab_id]);
       profile = { ...profile, preferredLabName: lab?.lab_name || null };
     }
@@ -20,6 +23,9 @@ export async function GET() {
       'SELECT lab_name, description, specialties, materials, turnaround_days, address FROM labs WHERE user_id = ?',
       [user.id]
     )) ?? null;
+    if (!profile || !profile.lab_name) {
+      needsOnboarding = true;
+    }
   } else if (user.role === 'SHIPPING') {
     profile = (await get('SELECT company_name FROM shipping_companies WHERE user_id = ?', [user.id])) ?? null;
   }
@@ -37,5 +43,5 @@ export async function GET() {
     activeCount = Number((await get("SELECT COUNT(*) as c FROM cases WHERE status = 'READY'"))?.c || 0);
   }
 
-  return Response.json({ user, profile, caseCount, activeCount });
+  return Response.json({ user, profile, needsOnboarding, caseCount, activeCount });
 }

@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import NavBar from '@/components/NavBar';
+import CaseAnalyticsDashboard from '@/components/CaseAnalyticsDashboard';
 import type { AnyCase, ApiMe } from '@/lib/types';
+import { useLanguage } from '@/components/LanguageProvider';
 
 const STATUS_COLOR: Record<string, string> = {
   SUBMITTED: 'bg-slate-500/10 text-slate-400 border border-slate-500/20',
@@ -16,9 +19,13 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { lang, t } = useLanguage();
   const [user, setUser] = useState<ApiMe | null>(null);
   const [cases, setCases] = useState<AnyCase[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const isAr = lang === 'ar';
 
   useEffect(() => {
     (async () => {
@@ -26,17 +33,26 @@ export default function DashboardPage() {
         fetch('/api/auth/me'),
         fetch('/api/cases/list'),
       ]);
-      if (meRes.ok) setUser(await meRes.json());
+      if (meRes.ok) {
+        const meData = await meRes.json();
+        if (meData.needsOnboarding) {
+          router.replace('/onboarding');
+          return;
+        }
+        setUser(meData);
+      }
       if (casesRes.ok) setCases(await casesRes.json());
       setLoading(false);
     })();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
         <NavBar role="" name="" />
-        <main className="mx-auto max-w-6xl p-8 text-sm font-semibold text-[var(--text-muted)]">Loading dashboard data…</main>
+        <main className="mx-auto max-w-6xl p-8 text-sm font-semibold text-[var(--text-muted)]">
+          {isAr ? 'جارٍ تحميل لوحة التحكم...' : 'Loading dashboard data…'}
+        </main>
       </div>
     );
   }
@@ -53,58 +69,70 @@ export default function DashboardPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-[var(--text)]">
-              Welcome back{user?.user?.name ? `, ${user.user.name.split(' ')[0]}` : ''}
+              {isAr
+                ? `مرحباً بك مجدداً${user?.user?.name ? `، ${user.user.name.split(' ')[0]}` : ''}`
+                : `Welcome back${user?.user?.name ? `, ${user.user.name.split(' ')[0]}` : ''}`}
             </h1>
             <p className="mt-1 text-sm font-medium text-[var(--text-muted)]">
-              {isDentist && 'Send 3D scans to dental labs, preview CAD designs, and track order stages.'}
-              {isLab && 'Manage incoming digital prescriptions, design CAD models, and hand off to production.'}
-              {isShipping && 'Pickup, track, and complete shipping logistics for finalized cases.'}
+              {isDentist && (isAr ? 'أرسل المسحات ثلاثية الأبعاد للمعامل، عاين تصاميم الـ CAD، وتابع مراحل التنفيذ.' : 'Send 3D scans to dental labs, preview CAD designs, and track order stages.')}
+              {isLab && (isAr ? 'أدر الوصفات الرقمية الواردة، صمم النماذج ثلاثية الأبعاد، ووجه الحالات للإنتاج.' : 'Manage incoming digital prescriptions, design CAD models, and hand off to production.')}
+              {isShipping && (isAr ? 'استلم الطرود، أدر أرقام التتبع، وأكمل لوجستيات التوصيل للحالات الجاهزة.' : 'Pickup, track, and complete shipping logistics for finalized cases.')}
             </p>
           </div>
 
-          <div>
+          <div className="flex items-center gap-2.5">
             {isDentist && (
               <Link
                 href="/cases/new"
-                className="btn-accent inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm"
+                className="btn-accent inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-md text-white"
               >
-                <span>+</span> Create New Case
+                <span>+</span> {isAr ? 'إنشاء حالة جديدة' : 'Create New Case'}
               </Link>
             )}
             {isLab && (
               <Link
-                href="/cases"
-                className="btn-accent inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm"
+                href="/milling"
+                className="btn-accent inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-md text-white"
               >
-                View Incoming Cases
+                <span>⚙️</span> {isAr ? 'لوحة الخراطة والإنتاج' : 'Milling Dashboard'}
               </Link>
             )}
             {isShipping && (
               <Link
                 href="/shipping"
-                className="btn-accent inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm"
+                className="btn-accent inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold shadow-md text-white"
               >
-                Open Shipping Queue
+                {isAr ? 'قائمة الشحن' : 'Open Shipping Queue'}
               </Link>
             )}
           </div>
         </div>
 
-        {/* Stats Grid */}
+        {/* Top Metric Stats Grid */}
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="dentrio-card rounded-2xl p-6">
-            <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Total Case Volume</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              {isAr ? 'إجمالي الحالات' : 'Total Case Volume'}
+            </p>
             <p className="mt-2 text-4xl font-black text-[var(--text)]">{user?.caseCount ?? 0}</p>
           </div>
           <div className="dentrio-card rounded-2xl p-6">
-            <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Active Pipeline</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              {isAr ? 'الحالات الجارية' : 'Active Pipeline'}
+            </p>
             <p className="mt-2 text-4xl font-black text-[var(--accent)]">{user?.activeCount ?? 0}</p>
           </div>
           <div className="dentrio-card rounded-2xl p-6">
-            <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Your Role & Privilege</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              {isAr ? 'نوع الحساب والصلاحية' : 'Your Role & Privilege'}
+            </p>
             <div className="mt-2 flex items-center gap-2">
               <span className="text-xl font-extrabold text-[var(--text)]">
-                {user?.user?.role === 'DENTIST' ? 'Dentist' : user?.user?.role === 'LAB' ? 'Dental Lab' : 'Shipping'}
+                {user?.user?.role === 'DENTIST'
+                  ? (isAr ? 'طبيب أسنان' : 'Dentist')
+                  : user?.user?.role === 'LAB'
+                  ? (isAr ? 'معمل أسنان' : 'Dental Lab')
+                  : (isAr ? 'شحن ولوجستيات' : 'Shipping')}
               </span>
               <span className="rounded-md border border-[var(--border)] bg-[var(--bg-elevated)] px-2 py-0.5 text-xs font-bold text-[var(--accent)]">
                 {user?.user?.privilege || 'normal'}
@@ -113,27 +141,29 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Profile Card */}
+        {/* Profile Details Card */}
         {user?.profile && (
           <div className="dentrio-card mt-6 rounded-2xl p-6">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-muted)]">Organization & Profile Details</h2>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              {isAr ? 'بيانات الحساب والمنشأة' : 'Organization & Profile Details'}
+            </h2>
             <div className="mt-4 grid grid-cols-1 gap-3 text-sm font-semibold sm:grid-cols-2 lg:grid-cols-3">
               {isDentist && (
                 <>
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
-                    <span className="text-xs text-[var(--text-muted)]">Clinic Name:</span>
+                    <span className="text-xs text-[var(--text-muted)]">{isAr ? 'اسم العيادة:' : 'Clinic Name:'}</span>
                     <p className="text-sm font-bold text-[var(--text)]">{user.profile.clinic_name || '—'}</p>
                   </div>
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
-                    <span className="text-xs text-[var(--text-muted)]">Preferred Lab:</span>
-                    <p className="text-sm font-bold text-[var(--accent)]">{user.profile.preferredLabName || 'None Selected'}</p>
+                    <span className="text-xs text-[var(--text-muted)]">{isAr ? 'المعمل المفضل:' : 'Preferred Lab:'}</span>
+                    <p className="text-sm font-bold text-[var(--accent)]">{user.profile.preferredLabName || (isAr ? 'لم يحدد' : 'None Selected')}</p>
                   </div>
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
-                    <span className="text-xs text-[var(--text-muted)]">Contact Phone:</span>
+                    <span className="text-xs text-[var(--text-muted)]">{isAr ? 'هاتف التواصل:' : 'Contact Phone:'}</span>
                     <p className="text-sm font-bold text-[var(--text)] font-mono">{user.user.phone || '—'}</p>
                   </div>
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3 sm:col-span-2">
-                    <span className="text-xs text-[var(--text-muted)]">Address & Location:</span>
+                    <span className="text-xs text-[var(--text-muted)]">{isAr ? 'العنوان والموقع:' : 'Address & Location:'}</span>
                     <div className="mt-1 flex items-center justify-between">
                       <p className="text-sm font-bold text-[var(--text)]">{user.profile.address || '—'}</p>
                       {user.profile.maps_url ? (
@@ -143,7 +173,7 @@ export default function DashboardPage() {
                           rel="noopener noreferrer"
                           className="text-xs font-bold text-[var(--accent)] hover:underline flex items-center gap-1"
                         >
-                          📍 Google Maps ↗
+                          📍 {isAr ? 'عرض في خرائط Google ↗' : 'View on Google Maps ↗'}
                         </a>
                       ) : user.profile.address ? (
                         <a
@@ -152,7 +182,7 @@ export default function DashboardPage() {
                           rel="noopener noreferrer"
                           className="text-xs font-bold text-[var(--accent)] hover:underline flex items-center gap-1"
                         >
-                          📍 Google Maps ↗
+                          📍 {isAr ? 'عرض في خرائط Google ↗' : 'View on Google Maps ↗'}
                         </a>
                       ) : null}
                     </div>
@@ -162,23 +192,23 @@ export default function DashboardPage() {
               {isLab && (
                 <>
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
-                    <span className="text-xs text-[var(--text-muted)]">Lab Facility:</span>
-                    <p className="text-sm font-bold text-[var(--text)]">{user.profile.lab_name}</p>
+                    <span className="text-xs text-[var(--text-muted)]">{isAr ? 'اسم المعمل:' : 'Lab Name:'}</span>
+                    <p className="text-sm font-bold text-[var(--text)]">{user.profile.lab_name || '—'}</p>
                   </div>
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
-                    <span className="text-xs text-[var(--text-muted)]">Avg. Turnaround:</span>
-                    <p className="text-sm font-bold text-[var(--accent)]">{user.profile.turnaround_days ?? '—'} Business Days</p>
+                    <span className="text-xs text-[var(--text-muted)]">{isAr ? 'مدة التنفيذ المعتادة:' : 'Turnaround Time:'}</span>
+                    <p className="text-sm font-bold text-[var(--accent)]">{user.profile.turnaround_days || 3} {isAr ? 'أيام عمل' : 'Business Days'}</p>
                   </div>
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
-                    <span className="text-xs text-[var(--text-muted)]">Contact Phone:</span>
+                    <span className="text-xs text-[var(--text-muted)]">{isAr ? 'هاتف التواصل:' : 'Contact Phone:'}</span>
                     <p className="text-sm font-bold text-[var(--text)] font-mono">{user.user.phone || '—'}</p>
                   </div>
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3 sm:col-span-2">
-                    <span className="text-xs text-[var(--text-muted)]">Specialties:</span>
+                    <span className="text-xs text-[var(--text-muted)]">{isAr ? 'تخصصات المعمل:' : 'Specialties:'}</span>
                     <p className="text-sm font-bold text-[var(--text)]">{user.profile.specialties || '—'}</p>
                   </div>
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3 sm:col-span-3">
-                    <span className="text-xs text-[var(--text-muted)]">Lab Facility Address & Location:</span>
+                    <span className="text-xs text-[var(--text-muted)]">{isAr ? 'مقر المعمل والعنوان:' : 'Lab Facility Address & Location:'}</span>
                     <div className="mt-1 flex items-center justify-between">
                       <p className="text-sm font-bold text-[var(--text)]">{user.profile.address || '—'}</p>
                       {user.profile.maps_url ? (
@@ -188,31 +218,10 @@ export default function DashboardPage() {
                           rel="noopener noreferrer"
                           className="text-xs font-bold text-[var(--accent)] hover:underline flex items-center gap-1"
                         >
-                          📍 View on Google Maps ↗
-                        </a>
-                      ) : user.profile.address ? (
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(user.profile.address)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-bold text-[var(--accent)] hover:underline flex items-center gap-1"
-                        >
-                          📍 View on Google Maps ↗
+                          📍 {isAr ? 'عرض في خرائط Google ↗' : 'View on Google Maps ↗'}
                         </a>
                       ) : null}
                     </div>
-                  </div>
-                </>
-              )}
-              {isShipping && (
-                <>
-                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
-                    <span className="text-xs text-[var(--text-muted)]">Logistics Company:</span>
-                    <p className="text-sm font-bold text-[var(--text)]">{user.profile.company_name || '—'}</p>
-                  </div>
-                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
-                    <span className="text-xs text-[var(--text-muted)]">Contact Phone:</span>
-                    <p className="text-sm font-bold text-[var(--text)] font-mono">{user.user.phone || '—'}</p>
                   </div>
                 </>
               )}
@@ -220,20 +229,25 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* 📊 Case Counting & Doctor Analytics Section (Per Time Period & Doctor) */}
+        {!isShipping && <CaseAnalyticsDashboard />}
+
         {/* Recent Cases Section */}
         <div className="mt-8">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-extrabold tracking-tight text-[var(--text)]">Recent Case Orders</h2>
+            <h2 className="text-xl font-extrabold tracking-tight text-[var(--text)]">
+              {isAr ? 'أحدث طلبات الحالات' : 'Recent Case Orders'}
+            </h2>
             <Link href="/cases" className="text-xs font-bold text-[var(--accent)] hover:underline">
-              View All Cases →
+              {isAr ? 'عرض كل الحالات ←' : 'View All Cases →'}
             </Link>
           </div>
 
           {cases.length === 0 ? (
             <div className="dentrio-card mt-4 rounded-2xl border-dashed p-10 text-center text-sm font-semibold text-[var(--text-muted)]">
-              {isDentist && 'No cases submitted yet. Create your first case to upload an STL scan to a dental lab.'}
-              {isLab && 'No cases assigned yet. Dentists who select your lab will appear in your queue.'}
-              {isShipping && 'No packages currently awaiting pickup.'}
+              {isDentist && (isAr ? 'لا توجد حالات مسجلة حتى الآن.' : 'No cases submitted yet. Create your first case to upload an STL scan.')}
+              {isLab && (isAr ? 'لا توجد حالات مسندة حتى الآن.' : 'No cases assigned yet. Cases sent to your lab will appear here.')}
+              {isShipping && (isAr ? 'لا توجد شحنات جاهزة للاستلام حالياً.' : 'No packages currently awaiting pickup.')}
             </div>
           ) : (
             <div className="dentrio-card mt-4 overflow-hidden rounded-2xl">
@@ -241,10 +255,10 @@ export default function DashboardPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-[var(--border)] bg-[var(--bg-elevated)] text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                     <tr>
-                      <th className="px-5 py-3.5">Case Code</th>
-                      <th className="px-5 py-3.5">{isDentist ? 'Assigned Lab' : isLab ? 'Doctor / Clinic' : 'Lab Source'}</th>
-                      <th className="px-5 py-3.5">Status Pipeline</th>
-                      <th className="px-5 py-3.5">Submission Date</th>
+                      <th className="px-5 py-3.5">{isAr ? 'كود الحالة' : 'Case Code'}</th>
+                      <th className="px-5 py-3.5">{isDentist ? (isAr ? 'المعمل المعين' : 'Assigned Lab') : isLab ? (isAr ? 'العيادة / الطبيب' : 'Doctor / Clinic') : (isAr ? 'المصدر' : 'Source')}</th>
+                      <th className="px-5 py-3.5">{isAr ? 'مرحلة الحالة' : 'Status Pipeline'}</th>
+                      <th className="px-5 py-3.5">{isAr ? 'تاريخ الإرسال' : 'Submission Date'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border)]">

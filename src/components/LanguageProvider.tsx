@@ -17,6 +17,7 @@ export interface Translations {
   signOut: string;
   dashboard: string;
   cases: string;
+  millingQueue: string;
   labDirectory: string;
   shippingQueue: string;
   overview: string;
@@ -98,6 +99,12 @@ export interface Translations {
   identifierPlaceholder: string;
   passwordLabel: string;
   passwordPlaceholder: string;
+  confirmPasswordLabel: string;
+  confirmPasswordPlaceholder: string;
+  passwordMismatchError: string;
+  agreePolicyPrefix: string;
+  privacyPolicyLink: string;
+  policyRequiredError: string;
   phoneLabel: string;
   phonePlaceholder: string;
   nameLabel: string;
@@ -122,6 +129,38 @@ export interface Translations {
   needAccount: string;
   alreadyHaveAccount: string;
   signInHere: string;
+
+  // Onboarding Questionnaire (Dentist vs Lab)
+  onboardingTitle: string;
+  onboardingSubtitle: string;
+  qRoleTitle: string;
+  qRoleDentistTitle: string;
+  qRoleDentistDesc: string;
+  qRoleLabTitle: string;
+  qRoleLabDesc: string;
+  qPracticeDetailsTitle: string;
+  qLabDetailsTitle: string;
+  qSpecialtiesTitle: string;
+  qClinicalSpecialtyTitle: string;
+  qTurnaroundTitle: string;
+  qAddressTitle: string;
+  qAddressPlaceholder: string;
+  completeSetupBtn: string;
+  savingWorkspace: string;
+
+  // Email Verification
+  checkEmailTitle: string;
+  checkEmailBody: string;
+  verifySuccessTitle: string;
+  verifySuccessBody: string;
+  verifyMissingToken: string;
+  verifyFailed: string;
+  resendVerification: string;
+  resendSent: string;
+  verifyCodePlaceholder: string;
+  verifyCodeButton: string;
+  verifyCodeLabel: string;
+  verifyLinkLabel: string;
 
   // Dashboard & Workflows
   welcomeBack: string;
@@ -163,6 +202,7 @@ export const DICTIONARY: Record<Language, Translations> = {
     signOut: 'Sign Out',
     dashboard: 'Dashboard',
     cases: 'Cases',
+    millingQueue: 'Milling',
     labDirectory: 'Lab Directory',
     shippingQueue: 'Shipping Queue',
     overview: 'Overview',
@@ -254,7 +294,13 @@ export const DICTIONARY: Record<Language, Translations> = {
     identifierPlaceholder: 'e.g. user, user@email.com, or +1555...',
     passwordLabel: 'Password',
     passwordPlaceholder: '••••••••',
-    phoneLabel: 'Phone Number *',
+    confirmPasswordLabel: 'Confirm Password',
+    confirmPasswordPlaceholder: '••••••••',
+    passwordMismatchError: 'Passwords do not match. Please verify and try again.',
+    agreePolicyPrefix: 'I have read and agree to the',
+    privacyPolicyLink: 'Dentrio Global Privacy Policy & Data Agreement',
+    policyRequiredError: 'You must review and agree to the Privacy Policy to create an account.',
+    phoneLabel: 'Phone Number (11 digits) *',
     phonePlaceholder: '+1 (555) 000-0000',
     nameLabel: 'Full Name / Title *',
     namePlaceholder: 'e.g. Dr. John Smith',
@@ -279,6 +325,37 @@ export const DICTIONARY: Record<Language, Translations> = {
     needAccount: 'Need a clinic or lab account?',
     alreadyHaveAccount: 'Already have an account?',
     signInHere: 'Sign In Here',
+
+    onboardingTitle: 'Complete Your Workspace Setup',
+    onboardingSubtitle: 'Answer a few quick questions to personalize your dental experience',
+    qRoleTitle: 'What best describes your daily workflow?',
+    qRoleDentistTitle: 'Dental Practice / Clinic',
+    qRoleDentistDesc: 'I treat patients, capture 3D intraoral scans or impressions, and prescribe custom dental restorations to laboratories.',
+    qRoleLabTitle: 'Dental Laboratory / Milling Center',
+    qRoleLabDesc: 'I receive 3D scans, design CAD restorations, mill zirconia/ceramics, and manufacture prosthetics.',
+    qPracticeDetailsTitle: 'Clinic / Practice Information',
+    qLabDetailsTitle: 'Laboratory & Production Information',
+    qSpecialtiesTitle: 'Laboratory Specialties (Select All That Apply)',
+    qClinicalSpecialtyTitle: 'Primary Clinical Focus',
+    qTurnaroundTitle: 'Standard Turnaround Time (Business Days)',
+    qAddressTitle: '📍 Practice or Lab Location / Google Maps Link',
+    qAddressPlaceholder: 'e.g. 450 Lexington Ave, New York, NY or https://maps.app.goo.gl/...',
+    completeSetupBtn: 'Complete Setup & Enter Platform',
+    savingWorkspace: 'Configuring your workspace…',
+
+    checkEmailTitle: 'Check your inbox',
+    checkEmailBody:
+      'A verification link was sent to your email address. Click it to activate your account, then sign in.',
+    verifySuccessTitle: 'Email verified',
+    verifySuccessBody: 'Your account is active. You can now sign in.',
+    verifyMissingToken: 'This verification link is incomplete or has expired.',
+    verifyFailed: 'Verification failed',
+    resendVerification: 'Resend verification email',
+    resendSent: 'A new verification email has been sent. Check your inbox.',
+    verifyCodePlaceholder: 'Enter the 6-digit code',
+    verifyCodeButton: 'Verify',
+    verifyCodeLabel: 'Enter the code from your email',
+    verifyLinkLabel: 'Use the link from your email',
 
     welcomeBack: 'Welcome back',
     dentistSubtitle:
@@ -319,6 +396,7 @@ export const DICTIONARY: Record<Language, Translations> = {
     signOut: 'تسجيل الخروج',
     dashboard: 'لوحة التحكم',
     cases: 'الحالات',
+    millingQueue: 'الخراطة والإنتاج',
     labDirectory: 'دليل المعامل',
     shippingQueue: 'قائمة الشحن',
     overview: 'نظرة عامة',
@@ -410,7 +488,13 @@ export const DICTIONARY: Record<Language, Translations> = {
     identifierPlaceholder: 'مثال: dr_smith أو user@email.com أو +9665...',
     passwordLabel: 'كلمة المرور',
     passwordPlaceholder: '••••••••',
-    phoneLabel: 'رقم الهاتف للتواصل *',
+    confirmPasswordLabel: 'تأكيد كلمة المرور',
+    confirmPasswordPlaceholder: '••••••••',
+    passwordMismatchError: 'كلمتا المرور غير متطابقتين. يرجى التأكد والمحاولة مرة أخرى.',
+    agreePolicyPrefix: 'قرأت وأوافق على',
+    privacyPolicyLink: 'سياسة الخصوصية العالمية واتفاقية معالجة البيانات لـ Dentrio',
+    policyRequiredError: 'يجب الموافقة على سياسة الخصوصية واتفاقية البيانات لإنشاء الحساب.',
+    phoneLabel: 'رقم الهاتف (11 رقماً) *',
     phonePlaceholder: '+966 50 000 0000',
     nameLabel: 'الاسم الكامل / اللقب *',
     namePlaceholder: 'مثال: د. أحمد المنصوري',
@@ -435,6 +519,37 @@ export const DICTIONARY: Record<Language, Translations> = {
     needAccount: 'تحتاج حساب عيادة أو معمل جديد؟',
     alreadyHaveAccount: 'لديك حساب مسجل؟',
     signInHere: 'سجل دخولك هنا',
+
+    onboardingTitle: 'أكمل إعداد مساحة عملك',
+    onboardingSubtitle: 'أجب على هذه الأسئلة البسيطة لتخصيص دورك وتجربتك في المنصة',
+    qRoleTitle: 'ما هو الوصف الأنسب لعملك وطبيعة نشاطك؟',
+    qRoleDentistTitle: 'عيادة أو طبيب أسنان',
+    qRoleDentistDesc: 'أعالج المرضى، وأرفع المسحات ثلاثية الأبعاد (STL/PLY)، وأرسل طلبات التركيبات والتقويم للمعمل.',
+    qRoleLabTitle: 'معمل أسنان أو مركز تصنيع',
+    qRoleLabDesc: 'أستلم المسحات الرقمية، وأصمم CAD، وأصنّع التيجان، الزيركون، وعدسات والتقويم والتركيبات.',
+    qPracticeDetailsTitle: 'بيانات العيادة أو المركز الطبي',
+    qLabDetailsTitle: 'بيانات معمل الأسنان والتصنيع',
+    qSpecialtiesTitle: 'تخصصات وخدمات المعمل (اختر كل ما ينطبق)',
+    qClinicalSpecialtyTitle: 'التخصص السريري الرئيسي',
+    qTurnaroundTitle: 'متوسط مدة التنفيذ والتسليم (أيام عمل)',
+    qAddressTitle: '📍 موقع العيادة أو المعمل / رابط خرائط جوجل',
+    qAddressPlaceholder: 'مثال: شارع العليا، الرياض أو رابط https://maps.app.goo.gl/...',
+    completeSetupBtn: 'إكمال الإعداد والدخول للمنصة',
+    savingWorkspace: 'جارٍ إعداد وتجهيز مساحة عملك…',
+
+    checkEmailTitle: 'تحقق من بريدك الإلكتروني',
+    checkEmailBody:
+      'تم إرسال رابط التحقق إلى بريدك الإلكتروني. اضغط عليه لتفعيل حسابك ثم سجل الدخول.',
+    verifySuccessTitle: 'تم التحقق من البريد',
+    verifySuccessBody: 'حسابك الآن نشط. يمكنك تسجيل الدخول.',
+    verifyMissingToken: 'رابط التحقق هذا غير مكتمل أو منتهي الصلاحية.',
+    verifyFailed: 'فشل التحقق',
+    resendVerification: 'إعادة إرسال بريد التحقق',
+    resendSent: 'تم إرسال بريد تحقق جديد. تفقد بريدك الإلكتروني.',
+    verifyCodePlaceholder: 'أدخل رمز التحقق المكون من 6 أرقام',
+    verifyCodeButton: 'تحقق',
+    verifyCodeLabel: 'أدخل الرمز المرسل إلى بريدك',
+    verifyLinkLabel: 'استخدم الرابط المرسل إلى بريدك',
 
     welcomeBack: 'مرحباً بك مجدداً',
     dentistSubtitle:

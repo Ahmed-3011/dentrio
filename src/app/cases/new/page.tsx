@@ -12,6 +12,7 @@ import DesignParametersPanel, {
   type DesignParams,
 } from '@/components/DesignParametersPanel';
 import type { ApiMe } from '@/lib/types';
+import { blobUploadsEnabled, uploadToBlob } from '@/lib/uploadClient';
 import { useLanguage } from '@/components/LanguageProvider';
 
 type Lab = {
@@ -53,6 +54,7 @@ export default function NewCasePage() {
   const [error, setError] = useState('');
   const [stageError, setStageError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState('');
   const [stage, setStage] = useState(0);
   const [fileUrls, setFileUrls] = useState<Record<string, string>>({});
   const [activeFile, setActiveFile] = useState<string | null>(null);
@@ -186,12 +188,39 @@ export default function NewCasePage() {
     }
     setError('');
     setBusy(true);
+    setProgress('');
+
+    const uploadedKeys: { path: string; name: string }[] = [];
+    try {
+      if (await blobUploadsEnabled()) {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const ext = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
+          const kind = ['.stl', '.ply'].includes(ext) ? 'scans' : 'photos';
+          setProgress(
+            isAr
+              ? `جارٍ رفع الملفات ${i + 1} من ${files.length}...`
+              : `Uploading file ${i + 1} of ${files.length}…`
+          );
+          uploadedKeys.push(await uploadToBlob(file, kind));
+        }
+      }
+    } catch {
+      setError(isAr ? 'فشل رفع الملفات. يرجى المحاولة مرة أخرى.' : 'File upload failed. Please try again.');
+      setBusy(false);
+      setProgress('');
+      return;
+    }
 
     const fd = new FormData();
     fd.set('labUserId', String(selectedLab));
-    files.forEach((f) => {
-      fd.append('scans', f);
-    });
+    if (uploadedKeys.length > 0) {
+      fd.set('scanKeys', JSON.stringify(uploadedKeys));
+    } else {
+      files.forEach((f) => {
+        fd.append('scans', f);
+      });
+    }
     fd.set('toothNumber', prescription.toothNumber || '');
     fd.set('material', prescription.material || '');
     fd.set('shade', prescription.shade || '');
@@ -205,12 +234,14 @@ export default function NewCasePage() {
       if (!res.ok) {
         setError(data.error || (isAr ? 'فشل إرسال الحالة' : 'Failed to create case'));
         setBusy(false);
+        setProgress('');
         return;
       }
       router.push(`/cases/${data.caseId}`);
     } catch {
       setError(isAr ? 'حدث خطأ في الاتصال بالخادم' : 'Network error submitting case');
       setBusy(false);
+      setProgress('');
     }
   }
 
@@ -809,9 +840,8 @@ export default function NewCasePage() {
                 className="btn-accent flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-sm font-bold text-white shadow-lg disabled:opacity-50"
               >
                 {busy
-                  ? isAr
-                    ? 'جارٍ رفع الملفات وإنشاء الحالة...'
-                    : 'Uploading files & creating case…'
+                  ? progress ||
+                    (isAr ? 'جارٍ رفع الملفات وإنشاء الحالة...' : 'Uploading files & creating case…')
                   : isAr
                     ? 'تأكيد وإرسال الحالة للمعمل'
                     : 'Confirm & Send to Dental Lab'}

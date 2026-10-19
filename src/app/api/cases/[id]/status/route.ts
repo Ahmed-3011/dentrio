@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { get, run } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
-import { saveUpload, isAllowedFile } from '@/lib/upload';
+import { isAllowedFile } from '@/lib/upload';
+import { putUpload, parseUploadedKeys } from '@/lib/storage';
 
 const NEXT_STATUS: Record<string, string> = {
   REVIEW: 'DESIGN',
@@ -48,14 +49,18 @@ export async function POST(
     form = new FormData();
   }
   const designFile = form.get('design') as File | null;
+  const [uploadedDesign] = parseUploadedKeys(form.get('designKey'));
   const action = String(form.get('action') || '');
 
-  if (designFile && designFile.size > 0) {
-    if (!isAllowedFile(designFile.name, 'scan')) {
+  const designName = uploadedDesign ? uploadedDesign.name : designFile && designFile.size > 0 ? designFile.name : null;
+
+  if (designName) {
+    if (!isAllowedFile(designName, 'scan')) {
       return Response.json({ error: 'Design file must be .stl or .ply' }, { status: 400 });
     }
-    const buffer = Buffer.from(await designFile.arrayBuffer());
-    designPath = saveUpload(buffer, designFile.name, 'designs');
+    designPath = uploadedDesign
+      ? uploadedDesign.path
+      : await putUpload(Buffer.from(await (designFile as File).arrayBuffer()), designName, 'designs');
   }
 
   if (action === 'mark-ready') {

@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { run, get } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
-import { saveUpload, isAllowedFile } from '@/lib/upload';
+import { isAllowedFile } from '@/lib/upload';
+import { putUpload, parseUploadedKeys } from '@/lib/storage';
 import { ensureCaseCodeUnique } from '@/lib/utils';
 
 export async function POST(req: NextRequest) {
@@ -27,8 +28,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Files already uploaded directly to storage by the browser (Vercel Blob).
+  const uploadedKeys = parseUploadedKeys(form.get('scanKeys'));
+
   // Retrieve all uploaded scan and photo files
-  const uploadedFiles = form.getAll('scans') as File[];
+  const uploadedFiles = (form.getAll('scans') as File[]).filter((f) => f instanceof File && f.size > 0);
   // Also check 'scan' fallback if sent as single
   const singleScan = form.get('scan') as File | null;
   if (singleScan && singleScan.size > 0 && !uploadedFiles.some((f) => f.name === singleScan.name)) {
@@ -44,43 +48,56 @@ export async function POST(req: NextRequest) {
   }
   const labUserIdRecord = Number(lab.user_id);
 
-  if (uploadedFiles.length === 0 || uploadedFiles.every((f) => f.size === 0)) {
+  if (uploadedKeys.length === 0 && uploadedFiles.length === 0) {
     return Response.json({ error: 'At least one 3D scan file (.stl or .ply) is required' }, { status: 400 });
   }
 
+  const isScanName = (name: string) => ['.stl', '.ply'].includes('.' + (name.split('.').pop()?.toLowerCase() || ''));
+
   // Find primary 3D scan
+  const primaryKey = uploadedKeys.find((k) => isScanName(k.name)) || null;
   let primaryScanFile: File | null = null;
-  for (const f of uploadedFiles) {
-    const ext = '.' + (f.name.split('.').pop()?.toLowerCase() || '');
-    if (['.stl', '.ply'].includes(ext)) {
-      primaryScanFile = f;
-      break;
+  if (!primaryKey) {
+    for (const f of uploadedFiles) {
+      if (isScanName(f.name)) {
+        primaryScanFile = f;
+        break;
+      }
     }
   }
 
-  if (!primaryScanFile) {
+  if (!primaryKey && !primaryScanFile) {
     return Response.json({ error: 'At least one 3D scan file (.stl or .ply) is required' }, { status: 400 });
   }
 
-  const primaryBuffer = Buffer.from(await primaryScanFile.arrayBuffer());
-  const primaryScanPath = saveUpload(primaryBuffer, primaryScanFile.name, 'scans');
+  const primaryScanName = primaryKey ? primaryKey.name : (primaryScanFile as File).name;
+  const primaryScanPath = primaryKey
+    ? primaryKey.path
+    : await putUpload(Buffer.from(await (primaryScanFile as File).arrayBuffer()), primaryScanName, 'scans');
 
   const code = await ensureCaseCodeUnique();
   const insert = await run(
     `INSERT INTO cases (code, dentist_user_id, lab_user_id, status, scan_original_name, scan_path)
      VALUES (?, ?, ?, 'REVIEW', ?, ?)`,
-    [code, user.id, labUserIdRecord, primaryScanFile.name, primaryScanPath]
+    [code, user.id, labUserIdRecord, primaryScanName, primaryScanPath]
   );
   const caseId = Number(insert.lastInsertRowid);
 
   // Save all uploaded files to case_files
+  for (const k of uploadedKeys) {
+    const isScan = isAllowedFile(k.name, 'scan');
+    const isImage = isAllowedFile(k.name, 'image');
+    await run(
+      `INSERT INTO case_files (case_id, file_path, file_name, file_type)
+       VALUES (?, ?, ?, ?)`,
+      [caseId, k.path, k.name, isScan ? 'scan' : isImage ? 'photo' : 'other']
+    );
+  }
+
   for (const f of uploadedFiles) {
-    if (f.size === 0) continue;
     const isScan = isAllowedFile(f.name, 'scan');
     const isImage = isAllowedFile(f.name, 'image');
-
-    const fileBuffer = Buffer.from(await f.arrayBuffer());
-    const savedPath = saveUpload(fileBuffer, f.name, isScan ? 'scans' : 'photos');
+    const savedPath = await putUpload(Buffer.from(await f.arrayBuffer()), f.name, isScan ? 'scans' : 'photos');
 
     await run(
       `INSERT INTO case_files (case_id, file_path, file_name, file_type)

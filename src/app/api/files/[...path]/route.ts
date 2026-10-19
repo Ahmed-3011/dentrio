@@ -4,6 +4,8 @@ import path from 'node:path';
 import { get } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { absoluteUploadPath } from '@/lib/upload';
+import { readUpload } from '@/lib/storage';
+import { mimeFor, isInlineMime } from '@/lib/mime';
 
 async function canAccess(
   userId: number,
@@ -55,41 +57,32 @@ export async function GET(
   const { path: p } = await params;
   const relative = p.join('/');
 
+  if (!(await canAccess(user.id, user.role, relative))) {
+    return Response.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   const abs = absoluteUploadPath(relative);
   const base = path.resolve(absoluteUploadPath(''));
   if (!abs.startsWith(base + path.sep)) {
     return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
-  if (!fs.existsSync(abs)) {
-    return Response.json({ error: 'Not found' }, { status: 404 });
-  }
-  if (!(await canAccess(user.id, user.role, relative))) {
-    return Response.json({ error: 'Forbidden' }, { status: 403 });
+
+  const mime = mimeFor(relative);
+  const disposition = isInlineMime(relative) ? 'inline' : `attachment; filename="${path.basename(abs)}"`;
+
+  if (fs.existsSync(abs)) {
+    const data = fs.readFileSync(abs);
+    return new Response(new Uint8Array(data), {
+      headers: { 'Content-Type': mime, 'Content-Disposition': disposition },
+    });
   }
 
-  const ext = path.extname(abs).toLowerCase();
-  const mime =
-    ext === '.html' || ext === '.htm' ? 'text/html; charset=utf-8'
-    : ext === '.stl' ? 'model/stl'
-    : ext === '.ply' ? 'application/octet-stream'
-    : ext === '.png' ? 'image/png'
-    : ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg'
-    : ext === '.gif' ? 'image/gif'
-    : ext === '.webp' ? 'image/webp'
-    : ext === '.webm' ? 'audio/webm'
-    : ext === '.mp3' ? 'audio/mpeg'
-    : ext === '.wav' ? 'audio/wav'
-    : ext === '.xml' ? 'application/xml; charset=utf-8'
-    : 'application/octet-stream';
+  const remote = await readUpload(relative);
+  if (remote) {
+    return new Response(remote.body, {
+      headers: { 'Content-Type': remote.contentType || mime, 'Content-Disposition': disposition },
+    });
+  }
 
-  const data = fs.readFileSync(abs);
-  return new Response(new Uint8Array(data), {
-    headers: {
-      'Content-Type': mime,
-      'Content-Disposition':
-        ext === '.html' || ext === '.htm' || ext.startsWith('.image') || ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.webm'
-          ? 'inline'
-          : `attachment; filename="${path.basename(abs)}"`,
-    },
-  });
+  return Response.json({ error: 'Not found' }, { status: 404 });
 }

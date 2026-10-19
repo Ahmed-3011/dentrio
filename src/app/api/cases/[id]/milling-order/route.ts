@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { get, run } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
-import { saveUpload } from '@/lib/upload';
+import { putUpload, parseUploadedKeys } from '@/lib/storage';
 
 async function isLabOfCase(userId: number, caseId: number): Promise<boolean> {
   const c = await get('SELECT lab_user_id FROM cases WHERE id = ?', [caseId]);
@@ -34,7 +34,11 @@ export async function POST(
   }
 
   const form = await req.formData();
-  
+
+  // Files already uploaded by the browser (Vercel Blob)
+  const stlKeys = parseUploadedKeys(form.get('stlKeys'));
+  const constructionKeys = parseUploadedKeys(form.get('constructionKeys'));
+
   // Retrieve multiple STL files
   const stlFiles = (form.getAll('stls') as File[]).concat(
     form.getAll('stl') as File[]
@@ -47,49 +51,61 @@ export async function POST(
 
   const notes = String(form.get('notes') || '').trim();
 
-  if (stlFiles.length === 0) {
+  if (stlKeys.length === 0 && stlFiles.length === 0) {
     return Response.json({ error: 'Please upload at least one final Milled STL design file' }, { status: 400 });
+  }
+
+  const stlEntries: { path: string; name: string }[] = [...stlKeys];
+  for (const f of stlFiles) {
+    stlEntries.push({
+      path: await putUpload(Buffer.from(await f.arrayBuffer()), f.name, 'milling_stl'),
+      name: f.name,
+    });
+  }
+
+  const constructionEntries: { path: string; name: string }[] = [...constructionKeys];
+  for (const f of constructionFiles) {
+    constructionEntries.push({
+      path: await putUpload(Buffer.from(await f.arrayBuffer()), f.name, 'milling_construction'),
+      name: f.name,
+    });
   }
 
   let primaryStlPath = '';
   let primaryStlName = '';
 
-  // Save all STL files to case_files table and disk
-  for (let i = 0; i < stlFiles.length; i++) {
-    const f = stlFiles[i];
-    const buffer = Buffer.from(await f.arrayBuffer());
-    const path = saveUpload(buffer, f.name, 'milling_stl');
+  // Save all STL files to case_files table
+  for (let i = 0; i < stlEntries.length; i++) {
+    const f = stlEntries[i];
 
     if (i === 0) {
-      primaryStlPath = path;
+      primaryStlPath = f.path;
       primaryStlName = f.name;
     }
 
     await run(
       `INSERT INTO case_files (case_id, file_path, file_name, file_type)
        VALUES (?, ?, ?, 'milling_stl')`,
-      [caseId, path, f.name]
+      [caseId, f.path, f.name]
     );
   }
 
   let primaryConstPath: string | null = null;
   let primaryConstName: string | null = null;
 
-  // Save all construction files to case_files table and disk
-  for (let i = 0; i < constructionFiles.length; i++) {
-    const f = constructionFiles[i];
-    const buffer = Buffer.from(await f.arrayBuffer());
-    const path = saveUpload(buffer, f.name, 'milling_construction');
+  // Save all construction files to case_files table
+  for (let i = 0; i < constructionEntries.length; i++) {
+    const f = constructionEntries[i];
 
     if (i === 0) {
-      primaryConstPath = path;
+      primaryConstPath = f.path;
       primaryConstName = f.name;
     }
 
     await run(
       `INSERT INTO case_files (case_id, file_path, file_name, file_type)
        VALUES (?, ?, ?, 'construction_info')`,
-      [caseId, path, f.name]
+      [caseId, f.path, f.name]
     );
   }
 
@@ -109,8 +125,8 @@ export async function POST(
   );
 
   // Notify case thread
-  const stlSummary = stlFiles.map((f) => f.name).join(', ');
-  const constSummary = constructionFiles.map((f) => f.name).join(', ');
+  const stlSummary = stlEntries.map((f) => f.name).join(', ');
+  const constSummary = constructionEntries.map((f) => f.name).join(', ');
 
   await run(
     `INSERT INTO messages (case_id, sender_user_id, body, is_image)
@@ -118,7 +134,7 @@ export async function POST(
     [
       caseId,
       user.id,
-      `⚙️ [Milling Order Dispatched]: Finalized ${stlFiles.length} STL design file(s) (${stlSummary})${
+      `⚙️ [Milling Order Dispatched]: Finalized ${stlEntries.length} STL design file(s) (${stlSummary})${
         constSummary ? ` and construction info (${constSummary})` : ''
       } dispatched to 5-axis CAM milling machine. Status is now IN PRODUCTION.`,
     ]

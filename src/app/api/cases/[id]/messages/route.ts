@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { all, get, run } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
-import { saveUpload, isAllowedFile, ALLOWED_AUDIO_EXT } from '@/lib/upload';
+import { isAllowedFile, ALLOWED_AUDIO_EXT } from '@/lib/upload';
+import { putUpload, parseUploadedKeys } from '@/lib/storage';
 
 async function canAccess(userId: number, role: string, caseId: number): Promise<boolean> {
   if (role === 'SHIPPING') return false;
@@ -75,18 +76,27 @@ export async function POST(
   }
   const body = String(form.get('body') || '');
 
+  // Files already uploaded by the browser (Vercel Blob)
+  const uploadedKeys = parseUploadedKeys(form.get('fileKeys'));
+
   // Retrieve multiple attached files
   const uploadedFiles = (form.getAll('files') as File[]).concat(
     form.getAll('file') as File[]
   );
 
-  if (!body.trim() && (uploadedFiles.length === 0 || uploadedFiles.every((f) => f.size === 0))) {
+  if (
+    !body.trim() &&
+    uploadedKeys.length === 0 &&
+    (uploadedFiles.length === 0 || uploadedFiles.every((f) => f.size === 0))
+  ) {
     return Response.json({ error: 'Message must have text or at least one file' }, { status: 400 });
   }
 
   const validFiles = uploadedFiles.filter((f) => f && f.size > 0);
 
-  if (validFiles.length === 0) {
+  const attachments: { path: string; name: string }[] = [...uploadedKeys];
+
+  if (validFiles.length === 0 && attachments.length === 0) {
     // Text-only message
     const info = await run(
       `INSERT INTO messages (case_id, sender_user_id, body, file_path, file_name, is_image)
@@ -98,25 +108,29 @@ export async function POST(
 
   // Insert a message for each file (first message carries the text body if present)
   let firstId = 0;
-  for (let i = 0; i < validFiles.length; i++) {
-    const file = validFiles[i];
-    const ext = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
-    const isImage = isAllowedFile(file.name, 'image') ? 1 : 0;
+  for (const file of validFiles) {
+    const isImage = isAllowedFile(file.name, 'image');
     const isAudio = isAllowedFile(file.name, 'audio');
+    attachments.push({
+      path: await putUpload(
+        Buffer.from(await file.arrayBuffer()),
+        file.name,
+        isAudio ? 'voice_notes' : isImage ? 'photos' : 'attachments'
+      ),
+      name: file.name,
+    });
+  }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const filePath = saveUpload(
-      buffer,
-      file.name,
-      isAudio ? 'voice_notes' : isImage ? 'photos' : 'attachments'
-    );
+  for (let i = 0; i < attachments.length; i++) {
+    const file = attachments[i];
+    const isImage = isAllowedFile(file.name, 'image') ? 1 : 0;
 
     const messageBody = i === 0 && body.trim() ? body.trim() : null;
 
     const info = await run(
       `INSERT INTO messages (case_id, sender_user_id, body, file_path, file_name, is_image)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [caseId, user.id, messageBody, filePath, file.name, isImage]
+      [caseId, user.id, messageBody, file.path, file.name, isImage]
     );
     if (i === 0) firstId = Number(info.lastInsertRowid);
   }

@@ -74,7 +74,9 @@ export default function CaseAnalyticsDashboard() {
   }, [period, selectedDoctorId, startDate, endDate]);
 
   useEffect(() => {
-    fetchAnalytics();
+    (async () => {
+      await fetchAnalytics();
+    })();
   }, [fetchAnalytics]);
 
   return (

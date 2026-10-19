@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useLanguage } from '@/components/LanguageProvider';
 import { downloadFilesToDirectory } from '@/lib/downloadHelper';
+import { blobUploadsEnabled, uploadToBlob } from '@/lib/uploadClient';
 
 interface MillingPackageData {
   stlPath: string;
@@ -80,12 +81,21 @@ export default function MillingOrderPackage({
     setError('');
 
     const fd = new FormData();
-    stlFiles.forEach((file) => {
-      fd.append('stls', file);
-    });
-    constructionFiles.forEach((file) => {
-      fd.append('constructions', file);
-    });
+    if (await blobUploadsEnabled()) {
+      const stlKeys: { path: string; name: string }[] = [];
+      for (const file of stlFiles) stlKeys.push(await uploadToBlob(file, 'milling_stl'));
+      const constructionKeys: { path: string; name: string }[] = [];
+      for (const file of constructionFiles) constructionKeys.push(await uploadToBlob(file, 'milling_construction'));
+      fd.set('stlKeys', JSON.stringify(stlKeys));
+      fd.set('constructionKeys', JSON.stringify(constructionKeys));
+    } else {
+      stlFiles.forEach((file) => {
+        fd.append('stls', file);
+      });
+      constructionFiles.forEach((file) => {
+        fd.append('constructions', file);
+      });
+    }
 
     try {
       const res = await fetch(`/api/cases/${caseId}/milling-order`, {

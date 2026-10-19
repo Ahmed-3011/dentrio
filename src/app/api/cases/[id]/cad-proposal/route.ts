@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { get, run } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
-import { saveUpload } from '@/lib/upload';
+import { putUpload, parseUploadedKeys } from '@/lib/storage';
 
 async function isLabOfCase(userId: number, caseId: number): Promise<boolean> {
   const c = await get('SELECT lab_user_id FROM cases WHERE id = ?', [caseId]);
@@ -27,20 +27,23 @@ export async function POST(
 
   const form = await req.formData();
   const file = form.get('proposal') as File | null;
+  const [uploaded] = parseUploadedKeys(form.get('proposalKey'));
   const designerNotes = String(form.get('notes') || '').trim();
 
-  if (!file || file.size === 0) {
+  if (!uploaded && (!file || file.size === 0)) {
     return Response.json({ error: 'Please upload an interactive 3D HTML design file (.html)' }, { status: 400 });
   }
 
-  const ext = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
+  const fileName = uploaded ? uploaded.name : (file as File).name;
+  const ext = '.' + (fileName.split('.').pop()?.toLowerCase() || '');
   const allowed = ['.html', '.htm'];
   if (!allowed.includes(ext)) {
     return Response.json({ error: 'Only interactive 3D Web Viewer files (.html) are accepted for design approval' }, { status: 400 });
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const filePath = saveUpload(buffer, file.name, 'cad_proposals');
+  const filePath = uploaded
+    ? uploaded.path
+    : await putUpload(Buffer.from(await (file as File).arrayBuffer()), fileName, 'cad_proposals');
 
   // Update case record with HTML 3D viewer, reset doctor approval to pending review
   await run(
@@ -53,7 +56,7 @@ export async function POST(
          status = 'REVIEW',
          updated_at = datetime('now')
      WHERE id = ?`,
-    [filePath, file.name, caseId]
+    [filePath, fileName, caseId]
   );
 
   // Log message in the case thread
@@ -65,9 +68,9 @@ export async function POST(
       user.id,
       `🌐 [3D HTML Design Preview Uploaded]: ${designerNotes || 'The interactive 3D HTML Web Viewer is ready for doctor review & authorization.'}`,
       filePath,
-      file.name,
+      fileName,
     ]
   );
 
-  return Response.json({ ok: true, path: filePath, name: file.name });
+  return Response.json({ ok: true, path: filePath, name: fileName });
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useLanguage } from '@/components/LanguageProvider';
+import { blobUploadsEnabled, uploadToBlob } from '@/lib/uploadClient';
 
 interface CadProposalData {
   path: string;
@@ -105,8 +106,13 @@ export default function CadProposalViewer({
     setBusy(true);
     setError('');
     const fd = new FormData();
-    fd.set('proposal', proposalFile);
     if (designerNotes.trim()) fd.set('notes', designerNotes.trim());
+    const key = (await blobUploadsEnabled()) ? await uploadToBlob(proposalFile, 'proposals') : null;
+    if (key) {
+      fd.set('proposalKey', JSON.stringify([key]));
+    } else {
+      fd.set('proposal', proposalFile);
+    }
 
     try {
       const res = await fetch(`/api/cases/${caseId}/cad-proposal`, {
@@ -260,7 +266,7 @@ export default function CadProposalViewer({
                 <span>{isAr ? 'طلب الطبيب تعديلات على التصميم:' : 'Doctor Requested Design Modifications:'}</span>
               </div>
               <p className="text-xs font-normal text-amber-200/90 pl-6 whitespace-pre-wrap">
-                "{cadProposal.revisionNotes}"
+                &ldquo;{cadProposal.revisionNotes}&rdquo;
               </p>
             </div>
           ) : (

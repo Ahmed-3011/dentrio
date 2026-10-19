@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/components/LanguageProvider';
 import Viewer3D from '@/components/Viewer3D';
+import { blobUploadsEnabled, uploadToBlob } from '@/lib/uploadClient';
 
 type Msg = {
   id: number;
@@ -301,9 +302,19 @@ export default function Chat({ caseId }: { caseId: number }) {
 
     const fd = new FormData();
     if (text.trim()) fd.set('body', text.trim());
-    attachedFiles.forEach((file) => {
-      fd.append('files', file);
-    });
+    const keys: { path: string; name: string }[] = [];
+    if (attachedFiles.length > 0 && (await blobUploadsEnabled())) {
+      for (const file of attachedFiles) {
+        keys.push(await uploadToBlob(file, 'attachments'));
+      }
+    }
+    if (keys.length > 0) {
+      fd.set('fileKeys', JSON.stringify(keys));
+    } else {
+      attachedFiles.forEach((file) => {
+        fd.append('files', file);
+      });
+    }
 
     try {
       const res = await fetch(`/api/cases/${caseId}/messages`, { method: 'POST', body: fd });
@@ -372,8 +383,13 @@ export default function Chat({ caseId }: { caseId: number }) {
 
       setBusy(true);
       const fd = new FormData();
-      fd.append('files', audioFile);
       fd.set('body', isAr ? '🎙️ رسالة صوتية' : '🎙️ Voice Note');
+      if (await blobUploadsEnabled()) {
+        const key = await uploadToBlob(audioFile, 'voice_notes');
+        fd.set('fileKeys', JSON.stringify([key]));
+      } else {
+        fd.append('files', audioFile);
+      }
 
       try {
         const res = await fetch(`/api/cases/${caseId}/messages`, { method: 'POST', body: fd });

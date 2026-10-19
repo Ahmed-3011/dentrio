@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx src/lib/seed.ts"
+    "seed": "tsx src/lib/seed.ts",
+    "blob:migrate": "node scripts/upload-existing-to-blob.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",

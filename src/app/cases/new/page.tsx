@@ -1,9 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import NavBar from '@/components/NavBar';
 import ToothChartSelector from '@/components/ToothChartSelector';
+import Viewer3D from '@/components/Viewer3D';
+import MaterialPicker from '@/components/MaterialPicker';
+import DesignParametersPanel, {
+  DEFAULT_DESIGN_PARAMS,
+  NUM_PARAM_DEFS,
+  type DesignParams,
+} from '@/components/DesignParametersPanel';
 import type { ApiMe } from '@/lib/types';
 import { useLanguage } from '@/components/LanguageProvider';
 
@@ -18,6 +25,21 @@ type Lab = {
   isPreferred: boolean;
 };
 
+const STEPS = [
+  { en: 'Upload', ar: 'رفع الملفات' },
+  { en: 'Customization', ar: 'التخصيص' },
+  { en: 'Confirm & Send', ar: 'تأكيد وإرسال' },
+];
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3 border-b border-[var(--border)] py-2 last:border-b-0">
+      <span className="shrink-0 text-xs font-semibold text-[var(--text-muted)]">{label}</span>
+      <span className="break-words text-right text-xs font-semibold text-[var(--text)]">{value}</span>
+    </div>
+  );
+}
+
 export default function NewCasePage() {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -27,10 +49,18 @@ export default function NewCasePage() {
   const [selectedLab, setSelectedLab] = useState<number | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [prescription, setPrescription] = useState<Record<string, string>>({});
+  const [designParams, setDesignParams] = useState<DesignParams>(DEFAULT_DESIGN_PARAMS);
   const [error, setError] = useState('');
+  const [stageError, setStageError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState(0);
+  const [fileUrls, setFileUrls] = useState<Record<string, string>>({});
+  const [activeFile, setActiveFile] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const urlsRef = useRef<Record<string, string>>({});
 
   const isAr = lang === 'ar';
+  const hasTeeth = !!(prescription.toothNumber || '').trim();
 
   function setP(field: string, value: string) {
     setPrescription((p) => ({ ...p, [field]: value }));
@@ -57,16 +87,89 @@ export default function NewCasePage() {
 
   function handleFileSelect(selected: FileList | null) {
     if (!selected) return;
-    const newFiles = Array.from(selected);
+    const existingNames = new Set(files.map((f) => f.name));
+    const filtered = Array.from(selected).filter((f) => !existingNames.has(f.name));
+    if (filtered.length === 0) return;
+    const made: Record<string, string> = {};
+    for (const f of filtered) {
+      made[f.name] = URL.createObjectURL(f);
+    }
+    if (Object.keys(made).length > 0) {
+      urlsRef.current = { ...urlsRef.current, ...made };
+      setFileUrls((prev) => ({ ...prev, ...made }));
+    }
+    setActiveFile((prev) => prev ?? filtered[0].name);
     setFiles((prev) => {
-      const existingNames = new Set(prev.map((f) => f.name));
-      const filtered = newFiles.filter((f) => !existingNames.has(f.name));
-      return [...prev, ...filtered];
+      const names = new Set(prev.map((f) => f.name));
+      return [...prev, ...filtered.filter((f) => !names.has(f.name))];
     });
   }
 
   function removeFile(index: number) {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+    const target = files[index];
+    const remaining = files.filter((_, i) => i !== index);
+    setFiles(remaining);
+    if (target && fileUrls[target.name]) {
+      URL.revokeObjectURL(fileUrls[target.name]);
+      const rest = { ...urlsRef.current };
+      delete rest[target.name];
+      urlsRef.current = rest;
+      setFileUrls((prev) => {
+        const next = { ...prev };
+        delete next[target.name];
+        return next;
+      });
+    }
+    if (target && activeFile === target.name) {
+      const next = remaining[Math.min(index, remaining.length - 1)];
+      setActiveFile(next ? next.name : null);
+    }
+  }
+
+  useEffect(() => {
+    const urls = urlsRef;
+    return () => {
+      Object.values(urls.current).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  function goNext() {
+    setStageError('');
+    if (stage === 0) {
+      if (files.length === 0) {
+        setStageError(
+          isAr
+            ? 'يرجى رفع ملف مسح ثلاثي الأبعاد واحد على الأقل (.stl أو .ply).'
+            : 'Please upload at least one 3D scan file (.stl or .ply) before continuing.'
+        );
+        return;
+      }
+      setStage(1);
+      return;
+    }
+    if (stage === 1) {
+      if (!hasTeeth) {
+        setStageError(
+          isAr
+            ? 'يرجى اختيار سن واحد على الأقل من مخطط الأسنان قبل المتابعة.'
+            : 'Please select at least one tooth on the chart before continuing.'
+        );
+        return;
+      }
+      setStage(2);
+    }
+  }
+
+  function goBack() {
+    setStageError('');
+    setStage((s) => Math.max(0, s - 1));
+  }
+
+  function goToStage(i: number) {
+    if (i < stage) {
+      setStageError('');
+      setStage(i);
+    }
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -94,6 +197,7 @@ export default function NewCasePage() {
     fd.set('shade', prescription.shade || '');
     fd.set('dueDate', prescription.dueDate || '');
     fd.set('notes', prescription.notes || '');
+    fd.set('designParams', JSON.stringify(designParams));
 
     try {
       const res = await fetch('/api/cases', { method: 'POST', body: fd });
@@ -110,6 +214,12 @@ export default function NewCasePage() {
     }
   }
 
+  const stageErrorBox = stageError ? (
+    <div className="rounded-xl border border-red-500/30 bg-red-950/40 p-3.5 text-xs font-bold text-red-400">
+      {stageError}
+    </div>
+  ) : null;
+
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
       <NavBar role={user?.user?.role} name={user?.user?.name} />
@@ -120,81 +230,56 @@ export default function NewCasePage() {
           </h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
             {isAr
-              ? 'اختر المعمل المعتمد، وارفع ملفات المسح ثلاثي الأبعاد (العلوي، السفلي، العضة)، وأكمل الوصفة السريرية.'
-              : 'Select a verified lab partner, attach the 3D scan files (Upper, Lower, Bite), and complete the digital prescription.'}
+              ? 'ارفع ملفات المسح، خصص التصميم مع اختيار الأسنان، ثم أكمل التأكيد والإرسال للمعمل.'
+              : 'Upload the scan files, customize the design with your tooth selection, then confirm and send to the lab.'}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Lab Selection Section */}
-          <section className="dentrio-card rounded-2xl p-6">
-            <h2 className="text-base font-bold text-[var(--text)]">
-              {isAr ? '1. اختيار معمل الأسنان' : '1. Choose Dental Lab'}
-            </h2>
-            <div className="mt-3">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={isAr ? 'البحث عن معمل بالاسم، التخصص، أو الموقع…' : 'Search lab by name, specialty, or location…'}
-                className="dentrio-input w-full rounded-xl px-3.5 py-2 text-xs"
-              />
-            </div>
-
-            <div className="mt-4 max-h-[500px] space-y-2.5 overflow-y-auto pr-1">
-              {labs.length === 0 && (
-                <p className="py-8 text-center text-xs font-semibold text-[var(--text-muted)]">
-                  {isAr ? 'لا توجد معامل مطابقة للبحث.' : 'No laboratories match your query.'}
-                </p>
-              )}
-              {labs.map((lab) => (
-                <button
-                  key={lab.id}
-                  type="button"
-                  onClick={() => setSelectedLab(lab.id)}
+        {/* Wizard Stepper */}
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          {STEPS.map((s, i) => (
+            <React.Fragment key={s.en}>
+              {i > 0 && <div className="h-px w-5 bg-[var(--border)] sm:w-10" aria-hidden="true" />}
+              <button
+                type="button"
+                onClick={() => goToStage(i)}
+                disabled={i >= stage}
+                className={
+                  'flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-bold transition sm:px-4 ' +
+                  (i === stage
+                    ? 'border-transparent bg-[var(--accent)] text-white shadow-lg'
+                    : i < stage
+                      ? 'cursor-pointer border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent-dim)]'
+                      : 'cursor-default border-[var(--border)] text-[var(--text-muted)] opacity-60')
+                }
+              >
+                <span
                   className={
-                    'w-full rounded-xl border p-4 text-start transition ' +
-                    (selectedLab === lab.id
-                      ? 'border-[var(--accent)] bg-[var(--accent-dim)] ring-2 ring-[var(--accent)]'
-                      : 'border-[var(--border)] bg-[var(--bg-elevated)] hover:border-[var(--accent)]/50')
+                    'flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-extrabold ' +
+                    (i === stage
+                      ? 'bg-white/25 text-white'
+                      : i < stage
+                        ? 'bg-[var(--accent-dim)] text-[var(--accent)]'
+                        : 'bg-[var(--bg-elevated)] text-[var(--text-muted)]')
                   }
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[var(--text)]">{lab.labName}</span>
-                      {lab.isPreferred && (
-                        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
-                          ★ {isAr ? 'مفضل' : 'Preferred'}
-                        </span>
-                      )}
-                    </div>
-                    {lab.turnaroundDays && (
-                      <span className="text-[11px] font-bold text-[var(--accent-light)] font-mono">
-                        ⚡ {lab.turnaroundDays} {isAr ? 'أيام عمل' : 'days'}
-                      </span>
-                    )}
-                  </div>
-                  {(lab.specialties || lab.materials) && (
-                    <p className="mt-1.5 text-xs font-medium text-[var(--text-muted)]">
-                      {lab.specialties && <span className="font-semibold text-[var(--text)]">{lab.specialties}</span>}
-                      {lab.specialties && lab.materials && <span> · </span>}
-                      {lab.materials && <span>{lab.materials}</span>}
-                    </p>
-                  )}
-                </button>
-              ))}
-            </div>
-          </section>
+                  {i + 1}
+                </span>
+                {isAr ? s.ar : s.en}
+              </button>
+            </React.Fragment>
+          ))}
+        </div>
 
-          {/* Scan & Prescription Form */}
-          <form onSubmit={onSubmit} className="space-y-6">
-            {/* 3D Scan Multi-File Upload */}
+        {/* ── Stage 1: Upload ───────────────────────────────── */}
+        {stage === 0 && (
+          <div className="space-y-6">
             <section className="dentrio-card rounded-2xl p-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-base font-bold text-[var(--text)]">
-                  {isAr ? '2. رفع ملفات المسح ثلاثي الأبعاد والصور' : '2. Upload 3D Intraoral Scans & Photos'}
+                  {isAr ? '1. رفع ملفات المسح ثلاثي الأبعاد والصور' : '1. Upload 3D Intraoral Scans & Photos'}
                 </h2>
-                <span className="text-[11px] font-mono text-[var(--accent-light)] font-bold">
+                <span className="text-[11px] font-mono font-bold text-[var(--accent-light)]">
                   {files.length} {isAr ? 'ملفات مختارة' : 'Selected'}
                 </span>
               </div>
@@ -205,164 +290,230 @@ export default function NewCasePage() {
                   : 'Upload multiple files simultaneously (Upper Jaw, Lower Jaw, Bite registration, Clinical photos)'}
               </p>
 
-              {/* Drag & Drop Multi-file Target */}
-              <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[rgba(42,127,255,0.3)] bg-[var(--bg-elevated)] p-6 text-center transition hover:border-[var(--accent)] hover:bg-[var(--accent-dim)]">
-                <input
-                  type="file"
-                  multiple
-                  accept=".stl,.ply,.png,.jpg,.jpeg"
-                  className="hidden"
-                  onChange={(e) => handleFileSelect(e.target.files)}
-                />
-                <div className="flex flex-col items-center">
-                  <span className="text-3xl">🦷📁</span>
-                  <p className="mt-2 text-sm font-bold text-[var(--text)]">
-                    {isAr ? 'اضغط لاختيار ملفات المسح أو اسحبها وأفلتها هنا' : 'Click or drop multiple STL / PLY / Photo files here'}
-                  </p>
-                  <p className="mt-1 text-xs text-[var(--text-muted)] font-mono">
-                    .STL, .PLY, .PNG, .JPG (Multi-file upload supported)
-                  </p>
+              <div className="mt-4 grid gap-5 lg:grid-cols-2">
+                <div>
+                  <label
+                    onDragOver={(e) => {
+                      if (!Array.from(e.dataTransfer.types).includes('Files')) return;
+                      e.preventDefault();
+                      setDragOver(true);
+                    }}
+                    onDragLeave={(e) => {
+                      if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+                      setDragOver(false);
+                    }}
+                    onDrop={(e) => {
+                      if (!Array.from(e.dataTransfer.types).includes('Files')) return;
+                      e.preventDefault();
+                      setDragOver(false);
+                      handleFileSelect(e.dataTransfer.files);
+                    }}
+                    className={
+                      'flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition ' +
+                      (dragOver
+                        ? 'border-[var(--accent)] bg-[var(--accent-dim)]'
+                        : 'border-[rgba(42,127,255,0.3)] bg-[var(--bg-elevated)] hover:border-[var(--accent)] hover:bg-[var(--accent-dim)]')
+                    }
+                  >
+                    <input
+                      type="file"
+                      multiple
+                      accept=".stl,.ply,.png,.jpg,.jpeg"
+                      className="hidden"
+                      onChange={(e) => {
+                        handleFileSelect(e.target.files);
+                        e.target.value = '';
+                      }}
+                    />
+                    <div className="flex flex-col items-center">
+                      <span className="text-3xl">🦷📁</span>
+                      <p className="mt-2 text-sm font-bold text-[var(--text)]">
+                        {isAr ? 'اضغط لاختيار ملفات المسح أو اسحبها وأفلتها هنا' : 'Click or drop multiple STL / PLY / Photo files here'}
+                      </p>
+                      <p className="mt-1 font-mono text-xs text-[var(--text-muted)]">
+                        .STL, .PLY, .PNG, .JPG (Multi-file upload supported)
+                      </p>
+                    </div>
+                  </label>
+
+                  {files.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <span className="block text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                        {isAr ? 'الملفات الجاهزة للإرسال:' : 'Attached Scan Files:'}
+                      </span>
+                      <div className="max-h-72 space-y-1.5 overflow-y-auto pr-1">
+                        {files.map((f, i) => {
+                          const ext = f.name.split('.').pop()?.toLowerCase() || '';
+                          const is3D = ['stl', 'ply'].includes(ext);
+                          const isActive = f.name === activeFile;
+                          const preview = !is3D ? fileUrls[f.name] : undefined;
+                          return (
+                            <div
+                              key={i}
+                              onClick={() => setActiveFile(f.name)}
+                              className={
+                                'flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 text-xs transition ' +
+                                (isActive
+                                  ? 'border-[var(--accent)] bg-[var(--accent-dim)] ring-1 ring-[var(--accent)]'
+                                  : 'border-[var(--border)] bg-[#070A10]/70 hover:border-[var(--accent)]/50')
+                              }
+                            >
+                              <div className="flex min-w-0 items-center gap-3">
+                                {preview ? (
+                                  <img
+                                    src={preview}
+                                    alt=""
+                                    className="h-10 w-10 shrink-0 rounded-lg border border-[var(--border)] object-cover"
+                                  />
+                                ) : (
+                                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-elevated)] text-lg">
+                                    {is3D ? '🦷' : '📄'}
+                                  </span>
+                                )}
+                                <div className="min-w-0">
+                                  <span className="block truncate font-semibold text-white">{f.name}</span>
+                                  <span className="text-[10px] font-mono opacity-60">
+                                    {(f.size / (1024 * 1024)).toFixed(2)} MB
+                                    {is3D ? ' · 3D Scan' : ' · ' + ext.toUpperCase()}
+                                  </span>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeFile(i);
+                                }}
+                                className="px-2 py-0.5 font-bold text-red-400 hover:text-red-300"
+                                title={isAr ? 'حذف الملف' : 'Remove file'}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </label>
 
-              {/* Uploaded Files List Preview */}
-              {files.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)] block">
-                    {isAr ? 'الملفات الجاهزة للإرسال:' : 'Attached Scan Files:'}
-                  </span>
-                  <div className="max-h-44 space-y-1.5 overflow-y-auto pr-1">
-                    {files.map((f, i) => {
-                      const ext = f.name.split('.').pop()?.toLowerCase() || '';
-                      const is3D = ['stl', 'ply'].includes(ext);
-
-                      return (
-                        <div
-                          key={i}
-                          className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[#070A10]/70 px-3 py-2 text-xs"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span>{is3D ? '🦷' : '📷'}</span>
-                            <span className="truncate font-semibold text-white">{f.name}</span>
-                            <span className="text-[10px] font-mono opacity-60 shrink-0">
-                              ({(f.size / (1024 * 1024)).toFixed(2)} MB)
-                            </span>
-                          </div>
+                <div>
+                  {files.length > 1 && (
+                    <div className="mb-3 flex flex-wrap gap-1.5">
+                      {files.map((f) => {
+                        const is3D = ['stl', 'ply'].includes(f.name.split('.').pop()?.toLowerCase() || '');
+                        const isActive = f.name === activeFile;
+                        return (
                           <button
+                            key={f.name}
                             type="button"
-                            onClick={() => removeFile(i)}
-                            className="text-red-400 hover:text-red-300 font-bold px-2 py-0.5"
-                            title={isAr ? 'حذف الملف' : 'Remove file'}
+                            onClick={() => setActiveFile(f.name)}
+                            className={
+                              'flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition ' +
+                              (isActive
+                                ? 'bg-[var(--accent)] text-[#090d16] shadow-sm'
+                                : 'border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text)]')
+                            }
                           >
-                            ✕
+                            <span>{is3D ? '🦷' : '📷'}</span>
+                            <span className="max-w-[140px] truncate">{f.name}</span>
                           </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <div className="overflow-hidden rounded-xl border border-[var(--border)]">
+                    {activeFile && fileUrls[activeFile] ? (
+                      ['stl', 'ply'].includes(activeFile.split('.').pop()?.toLowerCase() || '') ? (
+                        <Viewer3D key={activeFile} url={fileUrls[activeFile]} fileName={activeFile} />
+                      ) : (
+                        <div className="flex h-[420px] items-center justify-center bg-[#131d2e] p-4">
+                          <img
+                            src={fileUrls[activeFile]}
+                            alt={activeFile}
+                            className="max-h-full max-w-full rounded-lg object-contain shadow-lg"
+                          />
                         </div>
-                      );
-                    })}
+                      )
+                    ) : (
+                      <div className="flex h-[420px] flex-col items-center justify-center gap-2 bg-[#131d2e] p-6 text-center">
+                        <span className="text-3xl">🦷📷</span>
+                        <p className="text-xs font-bold text-[var(--text-muted)]">
+                          {isAr
+                            ? 'ارفع ملفات المسح لعرضها هنا — تظهر الصور فوراً والمجسمات ثلاثية الأبعاد تفاعلية'
+                            : 'Upload scan files to preview them here — photos appear instantly, 3D scans open in an interactive viewer'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
             </section>
 
-            {/* Prescription Form */}
-            <section className="dentrio-card rounded-2xl p-6 space-y-5">
+            {stageErrorBox}
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={goNext}
+                className="btn-accent flex items-center gap-2 rounded-xl px-8 py-3.5 text-sm font-bold text-white shadow-lg"
+              >
+                {isAr ? 'التالي: التخصيص' : 'Next: Customization'} →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Stage 2: Customization ────────────────────────── */}
+        {stage === 1 && (
+          <div className="space-y-6">
+            <section className="dentrio-card rounded-2xl p-6">
               <h2 className="text-base font-bold text-[var(--text)]">
-                {isAr ? '3. مواصفات الوصفة السريرية' : '3. Prescription Specifications'}
+                {isAr ? '1. اختيار الأسنان وإعدادات التصميم' : '1. Tooth Selection & Design Parameters'}
               </h2>
-              
-              {/* Interactive Dental Odontogram & Tooth Numbering Chart */}
-              <div>
+
+              <div className="mt-4">
                 <ToothChartSelector
                   value={prescription.toothNumber || ''}
                   onChange={(val: string) => setP('toothNumber', val)}
                 />
               </div>
 
+              {hasTeeth ? (
+                <div className="dt-pref-panel-enter mt-5">
+                  <DesignParametersPanel value={designParams} onChange={setDesignParams} />
+                </div>
+              ) : (
+                <div className="mt-5 rounded-xl border border-dashed border-[var(--border)] bg-[var(--bg-elevated)] p-5 text-center">
+                  <p className="text-sm font-semibold text-[var(--text)]">
+                    {isAr
+                      ? 'اختر أسناناً من المخطط لعرض إعدادات تصميم التيجان'
+                      : 'Select teeth on the chart to reveal the crown design parameters'}
+                  </p>
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">
+                    {isAr
+                      ? 'مسافة الإسمنت، زاوية الحافة، السماكة القصوى… إلخ'
+                      : 'Cement gap, margin angle, minimal thickness, and more'}
+                  </p>
+                </div>
+              )}
+            </section>
+
+            <section className="dentrio-card rounded-2xl p-6 space-y-5">
+              <h2 className="text-base font-bold text-[var(--text)]">
+                {isAr ? '2. مواصفات الوصفة السريرية' : '2. Prescription Specifications'}
+              </h2>
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
+                <div className="sm:col-span-2">
                   <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
                     {isAr ? 'خامة المعمل المطلوبة' : 'Dental Lab Material Classification'}
                   </label>
-                  <select
+                  <MaterialPicker
                     value={prescription.material || ''}
-                    onChange={(e) => setP('material', e.target.value)}
-                    className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm"
-                  >
-                    <option value="">{isAr ? 'اختر خامة المعمل…' : 'Select Dental Lab Material…'}</option>
-                    
-                    <optgroup label="✨ 1. Zirconia & Polycrystalline Ceramics (CAD/CAM)">
-                      <option value="Multi-Layer 3D Pro Gradient Zirconia (49%-43% Translucency, 1200-700 MPa)">
-                        Multi-Layer 3D Pro Gradient Zirconia (High Esthetic & Strength)
-                      </option>
-                      <option value="High-Translucent (HT) Monolithic Zirconia (1200 MPa - Posterior)">
-                        High-Translucent (HT) Monolithic Zirconia (Posterior Full Contour)
-                      </option>
-                      <option value="Ultra-Translucent (UT/SHT) Anterior Zirconia (650-900 MPa)">
-                        Ultra-Translucent (UT/SHT) Anterior Zirconia (Incisal & Anterior)
-                      </option>
-                      <option value="High-Strength Opaque Zirconia (Coping / Framework Core)">
-                        High-Strength Opaque Zirconia (Framework / Coping Core)
-                      </option>
-                    </optgroup>
-
-                    <optgroup label="💎 2. Silica-based & Glass Ceramics">
-                      <option value="Lithium Disilicate - IPS e.max CAD / Press (500 MPa)">
-                        Lithium Disilicate (IPS e.max CAD / Press - Monolithic & Cut-back)
-                      </option>
-                      <option value="Zirconia-Reinforced Lithium Silicate (VITA SUPRINITY / Celtra)">
-                        Zirconia-Reinforced Lithium Silicate (VITA SUPRINITY / Celtra Press)
-                      </option>
-                      <option value="Feldspathic Layered Porcelain (VITA VM9 / Master Veneers)">
-                        Feldspathic Layered Porcelain (Ultra-thin Veneers & Esthetic Layering)
-                      </option>
-                      <option value="Leucite-Reinforced Glass Ceramic (IPS Empress CAD)">
-                        Leucite-Reinforced Glass Ceramic (IPS Empress CAD Inlays/Onlays)
-                      </option>
-                    </optgroup>
-
-                    <optgroup label="⚙️ 3. Metal-Ceramic & Implant Hybrid Systems">
-                      <option value="PFM: Ceramic Fused to Co-Cr Laser-Milled Alloy (Nickel-Free)">
-                        PFM (Ceramic Fused to Co-Cr Laser Milled Alloy - Bio Nickel-Free)
-                      </option>
-                      <option value="Titanium Custom Abutment (Grade 5) + Screw-Retained Zirconia Crown">
-                        Titanium Custom Abutment (Grade 5) + Screw-Retained Crown Hybrid
-                      </option>
-                      <option value="Full Cast Noble / High-Gold Alloy">
-                        Full Cast Noble / Semi-Precious High-Gold Alloy
-                      </option>
-                    </optgroup>
-
-                    <optgroup label="🧪 4. High-Performance Polymers & Temporaries">
-                      <option value="Multi-Layer PMMA High-Impact Disc (Long-Term Provisional / All-on-X)">
-                        Multi-Layer PMMA Disc (Long-Term Provisional / Full Arch All-on-X)
-                      </option>
-                      <option value="PEEK / BioHPP (Polyetheretherketone Implant & Framework)">
-                        PEEK / BioHPP (Biocompatible Implant Substructure Framework)
-                      </option>
-                      <option value="3D Printed Micro-hybrid Composite Resin (Permanent Crown & Bridge)">
-                        3D Printed Permanent Micro-hybrid Composite Crown Resin
-                      </option>
-                    </optgroup>
-
-                    <optgroup label="🛡️ 5. Removables & Orthodontic Aligners">
-                      <option value="Medical-Grade Multi-Layer Aligner Foil (Polyurethane / PETG)">
-                        Medical-Grade Multi-Layer Clear Aligner Foil (Thermoplastic)
-                      </option>
-                      <option value="Dual-Laminate Hard/Soft Occlusal Nightguard Splint">
-                        Dual-Laminate Hard/Soft Occlusal Nightguard Splint
-                      </option>
-                      <option value="Flexible Thermoplastic Valplast / TCS Unbreakable Resin">
-                        Flexible Thermoplastic Valplast / TCS Unbreakable Denture
-                      </option>
-                      <option value="High-Impact Heat-Cured PMMA Acrylic Full Denture">
-                        High-Impact Heat-Cured PMMA Full / Partial Denture Acrylic
-                      </option>
-                    </optgroup>
-
-                    <option value="Other / Custom Laboratory Material (Specified in Notes)">
-                      {isAr ? 'خامة معمل أخرى مخصصة (حددها في الملاحظات)' : 'Other / Custom Laboratory Material (Specify details in Notes)'}
-                    </option>
-                  </select>
+                    onChange={(v) => setP('material', v)}
+                  />
                 </div>
 
                 <div>
@@ -375,7 +526,7 @@ export default function NewCasePage() {
                     className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm"
                   >
                     <option value="">{isAr ? 'اختر درجة اللون…' : 'Select VITA Shade…'}</option>
-                    
+
                     <optgroup label="🌟 Bleached Shades (VITA 3D Bleach & Hollywood White)">
                       <option value="0M1">0M1 (VITA 3D-Master Ultra Bleach)</option>
                       <option value="0M2">0M2 (VITA 3D-Master Light Bleach)</option>
@@ -467,7 +618,7 @@ export default function NewCasePage() {
 
               <div className="mt-4">
                 <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                  {isAr ? 'ملاحظات التحضير والحواف السريرية' : 'Clinical & Margin Notes'}
+                  {isAr ? 'ملاحظات' : 'Notes'}
                 </label>
                 <textarea
                   value={prescription.notes || ''}
@@ -483,21 +634,191 @@ export default function NewCasePage() {
               </div>
             </section>
 
+            {stageErrorBox}
+
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={goBack}
+                className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] px-6 py-3.5 text-sm font-bold text-[var(--text)] transition hover:border-[var(--accent)]/50"
+              >
+                ← {isAr ? 'رجوع' : 'Back'}
+              </button>
+              <button
+                type="button"
+                onClick={goNext}
+                className="btn-accent flex items-center gap-2 rounded-xl px-8 py-3.5 text-sm font-bold text-white shadow-lg"
+              >
+                {isAr ? 'التالي: التأكيد' : 'Next: Confirm'} →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Stage 3: Confirm & Send ───────────────────────── */}
+        {stage === 2 && (
+          <form onSubmit={onSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <section className="dentrio-card rounded-2xl p-6">
+                <h2 className="text-base font-bold text-[var(--text)]">
+                  {isAr ? '1. مراجعة الحالة' : '1. Review Case Summary'}
+                </h2>
+
+                <div className="mt-4 space-y-5">
+                  <div>
+                    <span className="block text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                      {isAr ? 'ملفات المسح' : 'Scan Files'} ({files.length})
+                    </span>
+                    <div className="mt-2 max-h-36 space-y-1 overflow-y-auto pr-1">
+                      {files.map((f, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-2.5 py-1.5 text-xs"
+                        >
+                          <span className="truncate font-semibold text-[var(--text)]">
+                            {['png', 'jpg', 'jpeg'].includes(f.name.split('.').pop()?.toLowerCase() || '') ? '📷' : '🦷'}{' '}
+                            {f.name}
+                          </span>
+                          <span className="shrink-0 font-mono text-[10px] text-[var(--text-muted)]">
+                            {(f.size / (1024 * 1024)).toFixed(2)} MB
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                      {isAr ? 'الأسنان المحددة' : 'Selected Teeth'}
+                    </span>
+                    <div className="mt-2">
+                      <SummaryRow label={isAr ? 'FDI' : 'FDI'} value={prescription.toothNumber || '—'} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                      {isAr ? 'إعدادات التصميم' : 'Design Parameters'}
+                    </span>
+                    <div className="mt-2">
+                      {NUM_PARAM_DEFS.map((d) => (
+                        <SummaryRow
+                          key={d.key}
+                          label={isAr ? d.ar : d.en}
+                          value={`${designParams.nums[d.key] ?? d.def} ${d.unit}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                      {isAr ? 'الوصفة السريرية' : 'Prescription'}
+                    </span>
+                    <div className="mt-2">
+                      <SummaryRow
+                        label={isAr ? 'الخامة' : 'Material'}
+                        value={prescription.material || (isAr ? '—' : '—')}
+                      />
+                      <SummaryRow label={isAr ? 'درجة اللون' : 'Shade'} value={prescription.shade || '—'} />
+                      <SummaryRow label={isAr ? 'تاريخ التسليم' : 'Due Date'} value={prescription.dueDate || '—'} />
+                      <SummaryRow label={isAr ? 'ملاحظات' : 'Notes'} value={prescription.notes || '—'} />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="dentrio-card rounded-2xl p-6">
+                <h2 className="text-base font-bold text-[var(--text)]">
+                  {isAr ? '2. اختيار معمل الأسنان' : '2. Choose Dental Lab'}
+                </h2>
+                <div className="mt-3">
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={isAr ? 'البحث عن معمل بالاسم، التخصص، أو الموقع…' : 'Search lab by name, specialty, or location…'}
+                    className="dentrio-input w-full rounded-xl px-3.5 py-2 text-xs"
+                  />
+                </div>
+
+                <div className="mt-4 max-h-[560px] space-y-2.5 overflow-y-auto pr-1">
+                  {labs.length === 0 && (
+                    <p className="py-8 text-center text-xs font-semibold text-[var(--text-muted)]">
+                      {isAr ? 'لا توجد معامل مطابقة للبحث.' : 'No laboratories match your query.'}
+                    </p>
+                  )}
+                  {labs.map((lab) => (
+                    <button
+                      key={lab.id}
+                      type="button"
+                      onClick={() => setSelectedLab(lab.id)}
+                      className={
+                        'w-full rounded-xl border p-4 text-start transition ' +
+                        (selectedLab === lab.id
+                          ? 'border-[var(--accent)] bg-[var(--accent-dim)] ring-2 ring-[var(--accent)]'
+                          : 'border-[var(--border)] bg-[var(--bg-elevated)] hover:border-[var(--accent)]/50')
+                      }
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-[var(--text)]">{lab.labName}</span>
+                          {lab.isPreferred && (
+                            <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                              ★ {isAr ? 'مفضل' : 'Preferred'}
+                            </span>
+                          )}
+                        </div>
+                        {lab.turnaroundDays && (
+                          <span className="text-[11px] font-mono font-bold text-[var(--accent-light)]">
+                            ⚡ {lab.turnaroundDays} {isAr ? 'أيام عمل' : 'days'}
+                          </span>
+                        )}
+                      </div>
+                      {(lab.specialties || lab.materials) && (
+                        <p className="mt-1.5 text-xs font-medium text-[var(--text-muted)]">
+                          {lab.specialties && <span className="font-semibold text-[var(--text)]">{lab.specialties}</span>}
+                          {lab.specialties && lab.materials && <span> · </span>}
+                          {lab.materials && <span>{lab.materials}</span>}
+                        </p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            </div>
+
             {error && (
               <div className="rounded-xl border border-red-500/30 bg-red-950/40 p-3.5 text-xs font-bold text-red-400">
                 {error}
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={busy}
-              className="btn-accent flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-lg disabled:opacity-50"
-            >
-              {busy ? (isAr ? 'جارٍ رفع الملفات وإنشاء الحالة...' : 'Uploading files & creating case…') : (isAr ? 'إرسال الحالة للمعمل' : 'Submit Case to Dental Lab')}
-            </button>
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={goBack}
+                disabled={busy}
+                className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] px-6 py-3.5 text-sm font-bold text-[var(--text)] transition hover:border-[var(--accent)]/50 disabled:opacity-50"
+              >
+                ← {isAr ? 'رجوع' : 'Back'}
+              </button>
+              <button
+                type="submit"
+                disabled={busy}
+                className="btn-accent flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-sm font-bold text-white shadow-lg disabled:opacity-50"
+              >
+                {busy
+                  ? isAr
+                    ? 'جارٍ رفع الملفات وإنشاء الحالة...'
+                    : 'Uploading files & creating case…'
+                  : isAr
+                    ? 'تأكيد وإرسال الحالة للمعمل'
+                    : 'Confirm & Send to Dental Lab'}
+              </button>
+            </div>
           </form>
-        </div>
+        )}
       </main>
     </div>
   );

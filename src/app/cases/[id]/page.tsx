@@ -368,7 +368,7 @@ export default function CaseDetailPage() {
             )}
 
             {/* 3. CAM Milling Order Package (Multi-STL + Construction Info + Batch Download) */}
-            {!isShipping && (
+            {isLab && (
               <MillingOrderPackage
                 caseId={data.id}
                 caseCode={data.code}
@@ -463,7 +463,7 @@ export default function CaseDetailPage() {
                   {data.prescription.notes && (
                     <div className="col-span-1 sm:col-span-2 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3">
                       <dt className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                        {isAr ? 'ملاحظات التحضير والحواف السريرية' : 'Clinical & Margin Notes'}
+                        {isAr ? 'ملاحظات' : 'Notes'}
                       </dt>
                       <dd className="mt-1 whitespace-pre-wrap font-bold text-[var(--text)]">{data.prescription.notes}</dd>
                     </div>

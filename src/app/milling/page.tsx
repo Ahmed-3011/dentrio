@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import NavBar from '@/components/NavBar';
 import type { ApiMe } from '@/lib/types';
 import { useLanguage } from '@/components/LanguageProvider';
@@ -38,8 +39,10 @@ const CHECKLIST_KEYS = [
 
 export default function MillingPage() {
   const { lang } = useLanguage();
+  const router = useRouter();
   const [user, setUser] = useState<ApiMe | null>(null);
   const [cases, setCases] = useState<MillingCaseItem[]>([]);
+  const [denied, setDenied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterTab, setFilterTab] = useState<'IN_PROCESS' | 'DONE' | 'ALL'>('IN_PROCESS');
@@ -52,13 +55,19 @@ export default function MillingPage() {
 
   const isAr = lang === 'ar';
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
-      const [meRes, millingRes] = await Promise.all([
-        fetch('/api/auth/me'),
-        fetch('/api/milling'),
-      ]);
-      if (meRes.ok) setUser(await meRes.json());
+      const meRes = await fetch('/api/auth/me');
+      if (!meRes.ok) return;
+      const me: ApiMe = await meRes.json();
+      if (me?.user?.role !== 'LAB') {
+        setDenied(true);
+        router.replace('/dashboard');
+        return;
+      }
+      setUser(me);
+
+      const millingRes = await fetch('/api/milling');
       if (millingRes.ok) {
         const data: MillingCaseItem[] = await millingRes.json();
         setCases(data);
@@ -77,11 +86,13 @@ export default function MillingPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [router]);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    (async () => {
+      await loadData();
+    })();
+  }, [loadData]);
 
   function toggleExpandCase(caseId: number) {
     setExpandedCaseIds((prev) => {
@@ -210,12 +221,18 @@ export default function MillingPage() {
     });
   }, [cases, search, filterTab]);
 
-  if (loading) {
+  if (loading || denied) {
     return (
       <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
         <NavBar role="" name="" />
         <main className="mx-auto max-w-6xl p-8 text-sm font-semibold text-[var(--text-muted)]">
-          {isAr ? 'جارٍ تحميل لوحة تحكم الخراطة والتصنيع...' : 'Loading Milling & Production Dashboard…'}
+          {denied
+            ? isAr
+              ? 'لوحة الخراطة متاحة لحسابات المعامل فقط… جارٍ تحويلك.'
+              : 'The milling dashboard is available to laboratory accounts only… redirecting.'
+            : isAr
+              ? 'جارٍ تحميل لوحة تحكم الخراطة والتصنيع...'
+              : 'Loading Milling & Production Dashboard…'}
         </main>
       </div>
     );

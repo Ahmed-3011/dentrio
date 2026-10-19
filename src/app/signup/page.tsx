@@ -102,7 +102,7 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-4 sm:p-6 lg:p-8 bg-[#070A10] text-[var(--text)]">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-4 sm:p-6 lg:p-8 bg-[var(--bg)] text-[var(--text)]">
       {/* ── High-Performance CSS Radial Glow Mesh (Zero Lag / Pure CSS) ─ */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle,_rgba(42,127,255,0.18)_0%,_transparent_70%)]" />
@@ -115,7 +115,7 @@ export default function SignupPage() {
         <button
           onClick={toggleLanguage}
           type="button"
-          className="flex h-10 items-center gap-1.5 rounded-xl border border-[rgba(42,127,255,0.25)] bg-[#0E1B2A]/90 px-3 text-xs font-bold text-[var(--text)] shadow-lg transition hover:border-[var(--accent)]"
+          className="flex h-10 items-center gap-1.5 rounded-xl border border-[rgba(42,127,255,0.25)] bg-[var(--bg-card)]/90 px-3 text-xs font-bold text-[var(--text)] shadow-lg transition hover:border-[var(--accent)]"
         >
           <span>{lang === 'en' ? '🇸🇦' : '🇺🇸'}</span>
           <span className="font-mono">{lang === 'en' ? 'العربية' : 'EN'}</span>
@@ -125,7 +125,7 @@ export default function SignupPage() {
           onClick={toggleTheme}
           type="button"
           aria-label="Toggle Theme"
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-[rgba(42,127,255,0.25)] bg-[#0E1B2A]/90 text-[var(--text)] shadow-lg transition hover:border-[var(--accent)]"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-[rgba(42,127,255,0.25)] bg-[var(--bg-card)]/90 text-[var(--text)] shadow-lg transition hover:border-[var(--accent)]"
         >
           {theme === 'dark' ? '☀️' : '🌙'}
         </button>
@@ -138,11 +138,11 @@ export default function SignupPage() {
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--dentist)] to-[var(--lab)] text-xl font-bold text-[#070A10] shadow-lg shadow-[var(--accent-glow)]">
               ◈
             </div>
-            <span className="text-3xl font-extrabold tracking-tight text-white drop-shadow-md">
+            <span className="text-3xl font-extrabold tracking-tight text-[var(--text)] drop-shadow-md">
               {t.brand}<span className="text-[var(--accent)]">.</span>
             </span>
           </Link>
-          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-white sm:text-3xl drop-shadow-sm">
+          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-[var(--text)] sm:text-3xl drop-shadow-sm">
             {t.createAccount}
           </h1>
           <p className="mt-1 text-xs sm:text-sm font-medium text-[var(--text-muted)]">
@@ -153,7 +153,7 @@ export default function SignupPage() {
         </div>
 
         {/* High Performance Glass Card */}
-        <div className="rounded-2xl border border-[rgba(42,127,255,0.25)] bg-[#0E1B2A]/95 p-5 sm:p-8 shadow-2xl">
+        <div className="rounded-2xl border border-[rgba(42,127,255,0.25)] bg-[var(--bg-card)]/95 p-5 sm:p-8 shadow-2xl">
           <form onSubmit={onSubmit} className="space-y-4">
             <div>
               <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
@@ -165,7 +165,7 @@ export default function SignupPage() {
                 placeholder={t.namePlaceholder}
                 value={form.name || ''}
                 onChange={(e) => set('name', e.target.value)}
-                className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10] border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
+                className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[var(--input-bg)] border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
               />
             </div>
 
@@ -180,7 +180,7 @@ export default function SignupPage() {
                   placeholder="user@example.com"
                   value={form.email || ''}
                   onChange={(e) => set('email', e.target.value)}
-                  className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10] border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
+                  className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[var(--input-bg)] border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
                 />
               </div>
 
@@ -195,7 +195,7 @@ export default function SignupPage() {
                   placeholder="01XXXXXXXXX"
                   value={form.phone || ''}
                   onChange={(e) => set('phone', e.target.value)}
-                  className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10] border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
+                  className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[var(--input-bg)] border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
                 />
               </div>
             </div>
@@ -212,7 +212,7 @@ export default function SignupPage() {
                   placeholder={lang === 'ar' ? '٦ أحرف على الأقل' : 'At least 6 characters'}
                   value={form.password || ''}
                   onChange={(e) => set('password', e.target.value)}
-                  className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10] border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
+                  className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[var(--input-bg)] border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
                 />
               </div>
 
@@ -227,7 +227,7 @@ export default function SignupPage() {
                   placeholder={lang === 'ar' ? 'أعد إدخال كلمة المرور' : 'Re-enter password'}
                   value={form.confirmPassword || ''}
                   onChange={(e) => set('confirmPassword', e.target.value)}
-                  className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[#070A10] border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
+                  className="dentrio-input w-full rounded-xl px-3.5 py-2.5 text-sm font-semibold placeholder:text-[var(--input-placeholder)] bg-[var(--input-bg)] border-[rgba(42,127,255,0.2)] focus:border-[var(--accent)]"
                 />
               </div>
             </div>
@@ -240,7 +240,7 @@ export default function SignupPage() {
                 required
                 checked={agreedToPolicy}
                 onChange={(e) => setAgreedToPolicy(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-[#123B6B] bg-[#070A10] text-[var(--accent)] focus:ring-0 cursor-pointer accent-[var(--accent)] shrink-0"
+                className="mt-1 h-4 w-4 rounded border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--accent)] focus:ring-0 cursor-pointer accent-[var(--accent)] shrink-0"
               />
               <label htmlFor="agree-policy" className="text-xs text-[var(--text-muted)] select-none leading-relaxed">
                 <span>{t.agreePolicyPrefix} </span>
@@ -255,7 +255,7 @@ export default function SignupPage() {
             </div>
 
             {error && (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs font-medium text-red-300">
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs font-medium text-red-600 dark:text-red-300">
                 {error}
               </div>
             )}

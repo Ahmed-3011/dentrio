@@ -178,6 +178,7 @@ async function initSchema(): Promise<void> {
     'ALTER TABLE cases ADD COLUMN milling_construction_name TEXT',
     'ALTER TABLE cases ADD COLUMN milling_notes TEXT',
     'ALTER TABLE cases ADD COLUMN milling_created_at TEXT',
+    'ALTER TABLE prescriptions ADD COLUMN design_params TEXT',
   ];
 
   for (const m of safeMigrations) {

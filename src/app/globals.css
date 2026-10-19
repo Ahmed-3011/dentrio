@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Class-based dark mode: html.dark is toggled by ThemeProvider */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   /* Dark (default) Theme Tokens */
   --bg: #070A10;

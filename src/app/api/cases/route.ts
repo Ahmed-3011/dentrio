@@ -16,6 +16,16 @@ export async function POST(req: NextRequest) {
   const shade = String(form.get('shade') || '');
   const dueDate = String(form.get('dueDate') || '');
   const notes = String(form.get('notes') || '');
+  const rawDesignParams = String(form.get('designParams') || '');
+  let designParams: string | null = null;
+  if (rawDesignParams) {
+    try {
+      JSON.parse(rawDesignParams);
+      designParams = rawDesignParams;
+    } catch {
+      designParams = null;
+    }
+  }
 
   // Retrieve all uploaded scan and photo files
   const uploadedFiles = form.getAll('scans') as File[];
@@ -66,7 +76,6 @@ export async function POST(req: NextRequest) {
   // Save all uploaded files to case_files
   for (const f of uploadedFiles) {
     if (f.size === 0) continue;
-    const ext = '.' + (f.name.split('.').pop()?.toLowerCase() || '');
     const isScan = isAllowedFile(f.name, 'scan');
     const isImage = isAllowedFile(f.name, 'image');
 
@@ -81,9 +90,9 @@ export async function POST(req: NextRequest) {
   }
 
   await run(
-    `INSERT INTO prescriptions (case_id, restoration_type, tooth_number, material, shade, due_date, notes)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [caseId, restorationType, toothNumber, material, shade, dueDate || null, notes || null]
+    `INSERT INTO prescriptions (case_id, restoration_type, tooth_number, material, shade, due_date, notes, design_params)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [caseId, restorationType, toothNumber, material, shade, dueDate || null, notes || null, designParams]
   );
 
   return Response.json({ ok: true, caseId, code });

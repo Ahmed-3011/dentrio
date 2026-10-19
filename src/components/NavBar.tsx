@@ -18,18 +18,25 @@ export default function NavBar({ role, name }: { role?: string; name?: string })
   }
 
   const isShipping = role === 'SHIPPING';
+  const isLab = role === 'LAB';
 
   const LINKS = isShipping
     ? [
         { href: '/dashboard', label: t.overview },
         { href: '/shipping', label: t.shippingQueue },
       ]
-    : [
-        { href: '/dashboard', label: t.dashboard },
-        { href: '/cases', label: t.cases },
-        { href: '/milling', label: t.millingQueue },
-        { href: '/labs', label: t.labDirectory },
-      ];
+    : isLab
+      ? [
+          { href: '/dashboard', label: t.dashboard },
+          { href: '/cases', label: t.cases },
+          { href: '/milling', label: t.millingQueue },
+          { href: '/labs', label: t.labDirectory },
+        ]
+      : [
+          { href: '/dashboard', label: t.dashboard },
+          { href: '/cases', label: t.cases },
+          { href: '/labs', label: t.labDirectory },
+        ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--nav-bg)] backdrop-blur-xl transition-colors">

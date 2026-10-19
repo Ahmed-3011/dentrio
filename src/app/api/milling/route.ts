@@ -15,47 +15,24 @@ export async function GET() {
   const user = await requireUser();
   if (user instanceof Response) return user;
 
-  let casesQuery = '';
-  let params: unknown[] = [];
-
-  if (user.role === 'DENTIST') {
-    casesQuery = `
-      SELECT c.*, d.clinic_name, l.lab_name,
-             p.tooth_number, p.material, p.shade, p.due_date, p.notes as rx_notes
-      FROM cases c
-      LEFT JOIN dentists d ON d.user_id = c.dentist_user_id
-      LEFT JOIN labs l ON l.user_id = c.lab_user_id
-      LEFT JOIN prescriptions p ON p.case_id = c.id
-      WHERE c.dentist_user_id = ? AND (c.cad_approved_at IS NOT NULL OR c.status IN ('PRODUCTION','READY','SHIPPED','CLOSED'))
-      ORDER BY c.id DESC
-    `;
-    params = [user.id];
-  } else if (user.role === 'LAB') {
-    casesQuery = `
-      SELECT c.*, d.clinic_name, l.lab_name,
-             p.tooth_number, p.material, p.shade, p.due_date, p.notes as rx_notes
-      FROM cases c
-      LEFT JOIN dentists d ON d.user_id = c.dentist_user_id
-      LEFT JOIN labs l ON l.user_id = c.lab_user_id
-      LEFT JOIN prescriptions p ON p.case_id = c.id
-      WHERE c.lab_user_id = ? AND (c.cad_approved_at IS NOT NULL OR c.status IN ('PRODUCTION','READY','SHIPPED','CLOSED') OR c.milling_stl_path IS NOT NULL)
-      ORDER BY c.id DESC
-    `;
-    params = [user.id];
-  } else {
-    // Owner / Admin
-    casesQuery = `
-      SELECT c.*, d.clinic_name, l.lab_name,
-             p.tooth_number, p.material, p.shade, p.due_date, p.notes as rx_notes
-      FROM cases c
-      LEFT JOIN dentists d ON d.user_id = c.dentist_user_id
-      LEFT JOIN labs l ON l.user_id = c.lab_user_id
-      LEFT JOIN prescriptions p ON p.case_id = c.id
-      WHERE c.cad_approved_at IS NOT NULL OR c.status IN ('PRODUCTION','READY','SHIPPED','CLOSED')
-      ORDER BY c.id DESC
-    `;
-    params = [];
+  if (user.role !== 'LAB') {
+    return Response.json(
+      { error: 'Only dental laboratories can access the milling queue' },
+      { status: 403 }
+    );
   }
+
+  const casesQuery = `
+    SELECT c.*, d.clinic_name, l.lab_name,
+           p.tooth_number, p.material, p.shade, p.due_date, p.notes as rx_notes
+    FROM cases c
+    LEFT JOIN dentists d ON d.user_id = c.dentist_user_id
+    LEFT JOIN labs l ON l.user_id = c.lab_user_id
+    LEFT JOIN prescriptions p ON p.case_id = c.id
+    WHERE c.lab_user_id = ? AND (c.cad_approved_at IS NOT NULL OR c.status IN ('PRODUCTION','READY','SHIPPED','CLOSED') OR c.milling_stl_path IS NOT NULL)
+    ORDER BY c.id DESC
+  `;
+  const params: unknown[] = [user.id];
 
   const rows = await all(casesQuery, params);
 
@@ -123,6 +100,13 @@ export async function POST(req: NextRequest) {
   const user = await requireUser();
   if (user instanceof Response) return user;
 
+  if (user.role !== 'LAB') {
+    return Response.json(
+      { error: 'Only dental laboratories can manage the milling queue' },
+      { status: 403 }
+    );
+  }
+
   const body = await req.json();
   const { action, caseId, taskKey, completed } = body as {
     action?: 'TOGGLE_TASK' | 'MARK_READY';
@@ -138,11 +122,7 @@ export async function POST(req: NextRequest) {
   const caseRow = await get('SELECT id, lab_user_id, dentist_user_id, status FROM cases WHERE id = ?', [caseId]);
   if (!caseRow) return Response.json({ error: 'Case not found' }, { status: 404 });
 
-  // Only lab or dentist can interact with the case
-  if (user.role === 'LAB' && Number(caseRow.lab_user_id) !== user.id) {
-    return Response.json({ error: 'Forbidden' }, { status: 403 });
-  }
-  if (user.role === 'DENTIST' && Number(caseRow.dentist_user_id) !== user.id) {
+  if (Number(caseRow.lab_user_id) !== user.id) {
     return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -157,10 +137,6 @@ export async function POST(req: NextRequest) {
 
     return Response.json({ ok: true, taskKey, completed });
   } else if (action === 'MARK_READY') {
-    if (user.role !== 'LAB') {
-      return Response.json({ error: 'Only dental laboratories can mark cases ready for shipping' }, { status: 403 });
-    }
-
     await run("UPDATE cases SET status = 'READY', updated_at = datetime('now') WHERE id = ?", [caseId]);
 
     await run(

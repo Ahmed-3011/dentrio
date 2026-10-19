@@ -6,7 +6,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js';
 
-export default function Viewer3D({ url }: { url: string }) {
+const MATERIAL_MODES = {
+  ceramic: { color: 0xf1f5f9, roughness: 0.32, metalness: 0.05 },
+  stone: { color: 0xe2b887, roughness: 0.45, metalness: 0.02 },
+  contrast: { color: 0x38bdf8, roughness: 0.28, metalness: 0.12 },
+} as const;
+
+export default function Viewer3D({ url, fileName }: { url: string; fileName?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,6 +23,14 @@ export default function Viewer3D({ url }: { url: string }) {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const defaultPosRef = useRef<{ pos: THREE.Vector3; target: THREE.Vector3 } | null>(null);
+  const materialModeRef = useRef(materialMode);
+  const wireframeRef = useRef(wireframe);
+  const renderNeededRef = useRef(true);
+
+  useEffect(() => {
+    materialModeRef.current = materialMode;
+    wireframeRef.current = wireframe;
+  });
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -29,10 +43,13 @@ export default function Viewer3D({ url }: { url: string }) {
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 3000);
     cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const renderer = new THREE.WebGLRenderer({
+      antialias: window.devicePixelRatio <= 1.25,
+      powerPreference: 'high-performance',
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.05;
     container.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -44,30 +61,30 @@ export default function Viewer3D({ url }: { url: string }) {
 
     // ─── High-Definition Clinical Studio Multi-Point Lighting ──────
     // 1. Ambient Light - Ensures zero pitch-black blind spots
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
     scene.add(ambientLight);
 
     // 2. Hemisphere Light - Natural top sky / bottom ground reflection
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 1.1);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 0.6);
     scene.add(hemiLight);
 
     // 3. Key Occlusal Light (Bright clean light for cusps and grooves)
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.25);
     keyLight.position.set(30, 60, 45);
     scene.add(keyLight);
 
     // 4. Fill Light (Opposite side fill for soft, clear margin visibility)
-    const fillLight = new THREE.DirectionalLight(0xdbeafe, 1.4);
+    const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.6);
     fillLight.position.set(-40, 25, -30);
     scene.add(fillLight);
 
     // 5. Margin Rim Light (Sharp edge & undercut definition)
-    const rimLight = new THREE.DirectionalLight(0x93c5fd, 1.6);
+    const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.7);
     rimLight.position.set(0, -35, -50);
     scene.add(rimLight);
 
     // 6. Camera-Mounted Headlamp (Moves with user viewpoint to brightly illuminate deep preps)
-    const headLight = new THREE.PointLight(0xffffff, 1.0, 1000);
+    const headLight = new THREE.PointLight(0xffffff, 0.45, 1000);
     camera.add(headLight);
     scene.add(camera);
 
@@ -77,6 +94,7 @@ export default function Viewer3D({ url }: { url: string }) {
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
+      renderNeededRef.current = true;
     }
     resize();
     const ro = new ResizeObserver(resize);
@@ -89,7 +107,8 @@ export default function Viewer3D({ url }: { url: string }) {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`Failed to load model (${res.status})`);
         const buffer = await res.arrayBuffer();
-        const loader = url.toLowerCase().endsWith('.ply')
+        if (cancelled) return;
+        const loader = (fileName || url).toLowerCase().endsWith('.ply')
           ? new PLYLoader()
           : new STLLoader();
         const geometry = loader.parse(buffer) as THREE.BufferGeometry;
@@ -103,18 +122,20 @@ export default function Viewer3D({ url }: { url: string }) {
         const maxDim = Math.max(size.x, size.y, size.z) || 1;
 
         // High-fidelity clinical ceramic / zirconia shade material
+        const mode = MATERIAL_MODES[materialModeRef.current];
         const material = new THREE.MeshStandardMaterial({
-          color: 0xf1f5f9, // Crisp clean dental ivory / white
-          roughness: 0.32,
-          metalness: 0.05,
+          color: mode.color,
+          roughness: mode.roughness,
+          metalness: mode.metalness,
           flatShading: false,
         });
+        material.wireframe = wireframeRef.current;
 
         const mesh = new THREE.Mesh(geometry, material);
         meshRef.current = mesh;
         scene.add(mesh);
 
-        const fitDist = (maxDim * 2.5) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+        const fitDist = (maxDim * 0.6) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
         camera.position.set(fitDist / 1.3, fitDist / 1.5, fitDist);
         camera.lookAt(0, 0, 0);
         controls.target.set(0, 0, 0);
@@ -134,45 +155,45 @@ export default function Viewer3D({ url }: { url: string }) {
       }
     })();
 
+    const markDirty = () => {
+      renderNeededRef.current = true;
+    };
+    controls.addEventListener('change', markDirty);
+
     let raf = 0;
     const loop = () => {
-      controls.update();
-      renderer.render(scene, camera);
       raf = requestAnimationFrame(loop);
+      controls.update();
+      if (renderNeededRef.current) {
+        renderNeededRef.current = false;
+        renderer.render(scene, camera);
+      }
     };
     loop();
 
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
+      controls.removeEventListener('change', markDirty);
       ro.disconnect();
       renderer.dispose();
       if (renderer.domElement.parentNode === container) {
         container.removeChild(renderer.domElement);
       }
     };
-  }, [url]);
+  }, [url, fileName]);
 
   // Handle Material Color & Style Updates
   useEffect(() => {
     if (!meshRef.current) return;
     const mat = meshRef.current.material as THREE.MeshStandardMaterial;
-
-    if (materialMode === 'ceramic') {
-      mat.color.setHex(0xf1f5f9); // High-contrast clean white ceramic
-      mat.roughness = 0.32;
-      mat.metalness = 0.05;
-    } else if (materialMode === 'stone') {
-      mat.color.setHex(0xe2b887); // Dental Golden Gypsum Die Stone
-      mat.roughness = 0.45;
-      mat.metalness = 0.02;
-    } else if (materialMode === 'contrast') {
-      mat.color.setHex(0x38bdf8); // Precision Digital Cyan Contrast
-      mat.roughness = 0.28;
-      mat.metalness = 0.12;
-    }
+    const mode = MATERIAL_MODES[materialMode];
+    mat.color.setHex(mode.color);
+    mat.roughness = mode.roughness;
+    mat.metalness = mode.metalness;
     mat.wireframe = wireframe;
     mat.needsUpdate = true;
+    renderNeededRef.current = true;
   }, [materialMode, wireframe]);
 
   function resetView() {

@@ -13,12 +13,17 @@ export function blobUploadsEnabled(): Promise<boolean> {
   return probe;
 }
 
-export async function uploadToBlob(file: File, prefix: string): Promise<{ path: string; name: string }> {
+export async function uploadToBlob(
+  file: File,
+  prefix: string,
+  onProgress?: (percentage: number) => void
+): Promise<{ path: string; name: string }> {
   const safe = file.name.replace(/[^\w.\-]+/g, '_').replace(/^_+/, '') || 'file';
   const blob = await upload(`${prefix}/${Date.now()}-${safe}`, file, {
     access: 'public',
     handleUploadUrl: '/api/blob/upload',
     multipart: file.size > 5 * 1024 * 1024,
+    onUploadProgress: onProgress ? ({ percentage }) => onProgress(Math.round(percentage)) : undefined,
   });
   return { path: new URL(blob.url).pathname.replace(/^\//, ''), name: file.name };
 }

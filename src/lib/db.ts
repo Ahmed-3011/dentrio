@@ -181,15 +181,17 @@ async function initSchema(): Promise<void> {
     'ALTER TABLE prescriptions ADD COLUMN design_params TEXT',
   ];
 
-  for (const m of safeMigrations) {
-    try {
-      await c.execute(m);
-    } catch {
-      // Column already exists or already migrated
-    }
-  }
+  // Run migrations concurrently: cold starts pay one round trip instead of one per statement.
+  await Promise.all(
+    safeMigrations.map(async (m) => {
+      try {
+        await c.execute(m);
+      } catch {
+        // Column already exists or already migrated
+      }
+    })
+  );
 }
-
 export function ensureSchema(): Promise<void> {
   if (!schemaPromise) {
     schemaPromise = initSchema();

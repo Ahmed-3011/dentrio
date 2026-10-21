@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { run, get } from '@/lib/db';
+import { run, get, db } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
 import { isAllowedFile } from '@/lib/upload';
 import { putUpload, parseUploadedKeys } from '@/lib/storage';
@@ -42,7 +42,12 @@ export async function POST(req: NextRequest) {
   if (!labUserId) {
     return Response.json({ error: 'A dental laboratory must be selected' }, { status: 400 });
   }
-  const lab = await get('SELECT user_id FROM labs WHERE id = ?', [labUserId]);
+
+  // The lab lookup and code generation are independent: one round trip instead of two.
+  const [lab, code] = await Promise.all([
+    get('SELECT user_id FROM labs WHERE id = ?', [labUserId]),
+    ensureCaseCodeUnique(),
+  ]);
   if (!lab) {
     return Response.json({ error: 'Selected lab not found' }, { status: 400 });
   }
@@ -75,7 +80,6 @@ export async function POST(req: NextRequest) {
     ? primaryKey.path
     : await putUpload(Buffer.from(await (primaryScanFile as File).arrayBuffer()), primaryScanName, 'scans');
 
-  const code = await ensureCaseCodeUnique();
   const insert = await run(
     `INSERT INTO cases (code, dentist_user_id, lab_user_id, status, scan_original_name, scan_path)
      VALUES (?, ?, ?, 'REVIEW', ?, ?)`,
@@ -83,33 +87,43 @@ export async function POST(req: NextRequest) {
   );
   const caseId = Number(insert.lastInsertRowid);
 
-  // Save all uploaded files to case_files
-  for (const k of uploadedKeys) {
-    const isScan = isAllowedFile(k.name, 'scan');
-    const isImage = isAllowedFile(k.name, 'image');
-    await run(
-      `INSERT INTO case_files (case_id, file_path, file_name, file_type)
-       VALUES (?, ?, ?, ?)`,
-      [caseId, k.path, k.name, isScan ? 'scan' : isImage ? 'photo' : 'other']
-    );
-  }
+  // Stage the remaining files (legacy FormData uploads) in parallel.
+  const extraFiles = await Promise.all(
+    uploadedFiles.map(async (f) => {
+      const isScan = isAllowedFile(f.name, 'scan');
+      const isImage = isAllowedFile(f.name, 'image');
+      const savedPath = await putUpload(
+        Buffer.from(await f.arrayBuffer()),
+        f.name,
+        isScan ? 'scans' : 'photos'
+      );
+      return { path: savedPath, name: f.name, type: isScan ? 'scan' : isImage ? 'photo' : 'other' };
+    })
+  );
 
-  for (const f of uploadedFiles) {
-    const isScan = isAllowedFile(f.name, 'scan');
-    const isImage = isAllowedFile(f.name, 'image');
-    const savedPath = await putUpload(Buffer.from(await f.arrayBuffer()), f.name, isScan ? 'scans' : 'photos');
-
-    await run(
-      `INSERT INTO case_files (case_id, file_path, file_name, file_type)
-       VALUES (?, ?, ?, ?)`,
-      [caseId, savedPath, f.name, isScan ? 'scan' : isImage ? 'photo' : 'other']
-    );
-  }
-
-  await run(
-    `INSERT INTO prescriptions (case_id, restoration_type, tooth_number, material, shade, due_date, notes, design_params)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [caseId, restorationType, toothNumber, material, shade, dueDate || null, notes || null, designParams]
+  // Files plus prescription in a single write round trip.
+  await db().batch(
+    [
+      ...uploadedKeys.map((k) => ({
+        sql: `INSERT INTO case_files (case_id, file_path, file_name, file_type) VALUES (?, ?, ?, ?)`,
+        args: [
+          caseId,
+          k.path,
+          k.name,
+          isAllowedFile(k.name, 'scan') ? 'scan' : isAllowedFile(k.name, 'image') ? 'photo' : 'other',
+        ],
+      })),
+      ...extraFiles.map((f) => ({
+        sql: `INSERT INTO case_files (case_id, file_path, file_name, file_type) VALUES (?, ?, ?, ?)`,
+        args: [caseId, f.path, f.name, f.type],
+      })),
+      {
+        sql: `INSERT INTO prescriptions (case_id, restoration_type, tooth_number, material, shade, due_date, notes, design_params)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [caseId, restorationType, toothNumber, material, shade, dueDate || null, notes || null, designParams],
+      },
+    ],
+    'write'
   );
 
   return Response.json({ ok: true, caseId, code });

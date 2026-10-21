@@ -24,21 +24,20 @@ export async function POST(req: NextRequest) {
   }
 
   // Verification check temporarily bypassed
-  await createSession(Number(user.id));
+  const profilePromise =
+    user.role === 'DENTIST'
+      ? get('SELECT user_id, clinic_name FROM dentists WHERE user_id = ?', [user.id])
+      : user.role === 'LAB'
+        ? get('SELECT user_id, lab_name FROM labs WHERE user_id = ?', [user.id])
+        : Promise.resolve(undefined);
+
+  // Session insert and profile lookup are independent: do them in parallel.
+  await Promise.all([createSession(Number(user.id)), profilePromise]);
+  const profile = await profilePromise;
 
   // Check if user has completed profile onboarding
-  let needsOnboarding = false;
-  if (user.role === 'DENTIST') {
-    const dentist = await get('SELECT user_id, clinic_name FROM dentists WHERE user_id = ?', [user.id]);
-    if (!dentist || !dentist.clinic_name) {
-      needsOnboarding = true;
-    }
-  } else if (user.role === 'LAB') {
-    const lab = await get('SELECT user_id, lab_name FROM labs WHERE user_id = ?', [user.id]);
-    if (!lab || !lab.lab_name) {
-      needsOnboarding = true;
-    }
-  }
+  const profileName = profile ? (user.role === 'DENTIST' ? profile.clinic_name : profile.lab_name) : null;
+  const needsOnboarding = (user.role === 'DENTIST' || user.role === 'LAB') && !profileName;
 
   return Response.json({ ok: true, role: user.role, needsOnboarding });
 }

@@ -197,12 +197,19 @@ export default function NewCasePage() {
           const file = files[i];
           const ext = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
           const kind = ['.stl', '.ply'].includes(ext) ? 'scans' : 'photos';
+          const total = files.length;
           setProgress(
-            isAr
-              ? `جارٍ رفع الملفات ${i + 1} من ${files.length}...`
-              : `Uploading file ${i + 1} of ${files.length}…`
+            isAr ? `جارٍ رفع الملف ${i + 1} من ${total} — 0%` : `Uploading file ${i + 1} of ${total} — 0%`
           );
-          uploadedKeys.push(await uploadToBlob(file, kind));
+          uploadedKeys.push(
+            await uploadToBlob(file, kind, (pct) =>
+              setProgress(
+                isAr
+                  ? `جارٍ رفع الملف ${i + 1} من ${total} — ${pct}%`
+                  : `Uploading file ${i + 1} of ${total} — ${pct}%`
+              )
+            )
+          );
         }
       }
     } catch {

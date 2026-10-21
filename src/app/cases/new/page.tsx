@@ -212,7 +212,8 @@ export default function NewCasePage() {
           );
         }
       }
-    } catch {
+    } catch (err) {
+      console.error('Scan upload failed', err);
       setError(isAr ? 'فشل رفع الملفات. يرجى المحاولة مرة أخرى.' : 'File upload failed. Please try again.');
       setBusy(false);
       setProgress('');

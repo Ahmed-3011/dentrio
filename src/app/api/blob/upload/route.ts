@@ -35,14 +35,36 @@ export async function POST(req: NextRequest) {
   if (!blobEnabled()) {
     return Response.json({ error: 'Blob storage is not configured' }, { status: 503 });
   }
-  const user = await requireUser();
-  if (user instanceof Response) return user;
 
   let body: HandleUploadBody;
   try {
     body = (await req.json()) as HandleUploadBody;
   } catch {
     return Response.json({ error: 'Invalid upload payload' }, { status: 400 });
+  }
+
+  const type = (body as { type?: string }).type;
+
+  let userId = 0;
+  let role = '';
+
+  if (type === 'blob.generate-client-token') {
+    const user = await requireUser();
+    if (user instanceof Response) return user;
+    userId = user.id;
+    role = user.role;
+  } else {
+    // Vercel calls this route server-to-server when the browser upload finishes,
+    // so there is no session cookie. Accept the payload we issued in the token.
+    const raw = (body as { payload?: { tokenPayload?: string } }).payload?.tokenPayload;
+    try {
+      const parsed = JSON.parse(String(raw || '{}')) as { userId?: number; role?: string };
+      if (!parsed.userId) throw new Error('missing userId');
+      userId = Number(parsed.userId);
+      role = String(parsed.role || '');
+    } catch {
+      return Response.json({ error: 'Invalid upload payload' }, { status: 400 });
+    }
   }
 
   try {
@@ -53,7 +75,7 @@ export async function POST(req: NextRequest) {
         allowedContentTypes: ALLOWED_CONTENT_TYPES,
         maximumSizeInBytes: 500 * 1024 * 1024,
         addRandomSuffix: true,
-        tokenPayload: JSON.stringify({ userId: user.id, role: user.role }),
+        tokenPayload: JSON.stringify({ userId, role }),
       }),
       onUploadCompleted: async () => {},
     });

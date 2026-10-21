@@ -12,7 +12,7 @@ import DesignParametersPanel, {
   type DesignParams,
 } from '@/components/DesignParametersPanel';
 import type { ApiMe } from '@/lib/types';
-import { blobUploadsEnabled, uploadToBlob } from '@/lib/uploadClient';
+import { blobStatus, uploadToBlob } from '@/lib/uploadClient';
 import { useLanguage } from '@/components/LanguageProvider';
 
 type Lab = {
@@ -192,7 +192,35 @@ export default function NewCasePage() {
 
     const uploadedKeys: { path: string; name: string }[] = [];
     try {
-      if (await blobUploadsEnabled()) {
+      const status = await blobStatus();
+      const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+      const biggest = files.reduce((max, f) => Math.max(max, f.size), 0);
+
+      if (status === 'unreachable') {
+        setError(
+          isAr
+            ? 'خدمة رفع الملفات غير متاحة. تأكد من نشر أحدث إصدار من الموقع.'
+            : 'Upload service is unreachable. Make sure the latest version is deployed.'
+        );
+        setBusy(false);
+        return;
+      }
+
+      if (status === 'disabled' && !isLocal) {
+        setError(
+          biggest > 4 * 1024 * 1024
+            ? isAr
+              ? 'تخزين الملفات غير مُهيأ على الخادم، ولا يمكن رفع ملفات كبيرة بدونه. اربط متجر Blob بالمشروع ثم أعد النشر.'
+              : 'File storage is not configured on the server, and files over 4 MB cannot be uploaded without it. Connect a Blob store to the project and redeploy.'
+            : isAr
+              ? 'تخزين الملفات غير مُهيأ على الخادم. اربط متجر Blob بالمشروع ثم أعد النشر.'
+              : 'File storage is not configured on the server. Connect a Blob store to the project and redeploy.'
+        );
+        setBusy(false);
+        return;
+      }
+
+      if (status === 'enabled') {
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
           const ext = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
@@ -214,7 +242,11 @@ export default function NewCasePage() {
       }
     } catch (err) {
       console.error('Scan upload failed', err);
-      setError(isAr ? 'فشل رفع الملفات. يرجى المحاولة مرة أخرى.' : 'File upload failed. Please try again.');
+      setError(
+        isAr
+          ? `فشل رفع الملفات: ${(err as Error).message || 'خطأ غير معروف'}`
+          : `File upload failed: ${(err as Error).message || 'unknown error'}`
+      );
       setBusy(false);
       setProgress('');
       return;
@@ -237,7 +269,14 @@ export default function NewCasePage() {
     fd.set('designParams', JSON.stringify(designParams));
 
     try {
-      const res = await fetch('/api/cases', { method: 'POST', body: fd });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 3 * 60 * 1000);
+      let res: Response;
+      try {
+        res = await fetch('/api/cases', { method: 'POST', body: fd, signal: controller.signal });
+      } finally {
+        clearTimeout(timer);
+      }
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || (isAr ? 'فشل إرسال الحالة' : 'Failed to create case'));
@@ -246,8 +285,18 @@ export default function NewCasePage() {
         return;
       }
       router.push(`/cases/${data.caseId}`);
-    } catch {
-      setError(isAr ? 'حدث خطأ في الاتصال بالخادم' : 'Network error submitting case');
+    } catch (err) {
+      console.error('Create case failed', err);
+      const aborted = (err as Error).name === 'AbortError';
+      setError(
+        aborted
+          ? isAr
+            ? 'انتهت مهلة إرسال الحالة. حاول مرة أخرى.'
+            : 'Submitting the case timed out. Please try again.'
+          : isAr
+            ? 'حدث خطأ في الاتصال بالخادم'
+            : 'Network error submitting case'
+      );
       setBusy(false);
       setProgress('');
     }
